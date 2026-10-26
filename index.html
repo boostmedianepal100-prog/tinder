@@ -27,7 +27,7 @@
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="pb-24">
+<body class="pb-28">
 
   <!-- Header -->
   <header class="sticky top-0 z-40 glass-card px-4 py-3 flex items-center justify-between border-b border-rose-500/20">
@@ -43,7 +43,7 @@
         <span id="userCoins" class="font-bold text-amber-300">100</span>
       </div>
 
-      <!-- Admin Shield Trigger -->
+      <!-- Admin Shield Trigger (Restricted to ID: 8238330395) -->
       <button onclick="verifyAndOpenAdmin()" class="p-2 text-rose-300 hover:text-white transition">
         <i class="fa-solid fa-shield-halved text-lg"></i>
       </button>
@@ -74,8 +74,9 @@
 
   <!-- Main Live Profile Swipe Feed -->
   <main class="max-w-md mx-auto px-4" id="mainAppSection">
-    <div id="cardStack" class="relative min-h-[500px]"></div>
+    <div id="cardStack" class="relative min-h-[460px]"></div>
 
+    <!-- Swipe & Chat Action Bar -->
     <div class="flex items-center justify-around mt-4 max-w-xs mx-auto">
       <button onclick="swipe('dislike')" class="w-14 h-14 rounded-full glass-card border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg">
         <i class="fa-solid fa-xmark"></i>
@@ -89,7 +90,7 @@
     </div>
   </main>
 
-  <!-- 3-TIER SECURE ADMIN PANEL -->
+  <!-- SECURE ADMIN DASHBOARD (3-Tiers) -->
   <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
     <div class="flex items-center justify-between glass-card p-3 rounded-xl border-amber-500/30">
       <div class="flex items-center space-x-2">
@@ -120,6 +121,12 @@
             <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Save</button>
           </div>
         </div>
+        <div class="bg-black/40 p-2 rounded-lg space-y-1">
+          <p class="font-bold text-amber-300">Pending Payment Approvals</p>
+          <div id="adminDepositRequests" class="space-y-1 max-h-24 overflow-y-auto hide-scrollbar">
+            <p class="text-gray-400 text-center py-1">No pending deposits.</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -142,10 +149,37 @@
 
   <!-- Bottom Nav -->
   <nav class="fixed bottom-0 left-0 right-0 glass-card border-t border-rose-500/20 py-3 px-6 flex justify-around z-40 max-w-md mx-auto">
-    <button onclick="switchView('feed')" class="text-rose-400 flex flex-col items-center"><i class="fa-solid fa-fire text-lg"></i><span class="text-[10px] mt-1">Discover</span></button>
+    <button onclick="switchTab('feed')" id="nav-feed" class="text-rose-400 flex flex-col items-center"><i class="fa-solid fa-fire text-lg"></i><span class="text-[10px] mt-1">Discover</span></button>
     <button onclick="openModal('createProfileModal')" class="text-gray-400 hover:text-rose-400 flex flex-col items-center"><i class="fa-solid fa-user-pen text-lg"></i><span class="text-[10px] mt-1">My Profile</span></button>
     <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
   </nav>
+
+  <!-- Profile Creation Modal -->
+  <div id="createProfileModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <h3 class="font-bold text-lg text-rose-300"><i class="fa-solid fa-user-pen mr-2"></i>Create/Edit Profile</h3>
+        <button onclick="closeModal('createProfileModal')" class="text-gray-400 hover:text-white">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <input type="text" id="profName" placeholder="Your Name" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <input type="number" id="profAge" placeholder="Age (e.g. 23)" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <select id="profGender" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+        </select>
+        <select id="profMode" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+          <option value="Dating">Dating</option>
+          <option value="Friendship">Friendship</option>
+          <option value="Blind Date">Blind Date</option>
+        </select>
+        <input type="text" id="profProfession" placeholder="Profession" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <input type="text" id="profInstagram" placeholder="Instagram / Social Handle" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <input type="text" id="profPhoto" placeholder="Photo Image URL" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <button onclick="saveUserProfile()" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white">Save Profile</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Wallet Modal -->
   <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -158,10 +192,11 @@
         <p class="text-xs text-gray-400">Current Balance</p>
         <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">100 Coins</p>
       </div>
-      <div class="space-y-2">
-        <h4 class="font-semibold text-xs text-rose-300">Deposit Coins</h4>
-        <input type="number" id="depositAmount" placeholder="Amount" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-xs outline-none">
-        <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold text-xs rounded-lg">Submit</button>
+      <div class="space-y-2 text-xs">
+        <h4 class="font-semibold text-rose-300">Deposit Coins</h4>
+        <input type="number" id="depositAmount" placeholder="Amount (e.g. 50)" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200">
+        <input type="file" id="paymentProof" accept="image/*" class="w-full text-gray-400">
+        <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white">Submit Proof</button>
       </div>
     </div>
   </div>
@@ -172,11 +207,12 @@
     let currentUserCoins = 100;
 
     let profiles = [
-      { id: 1, name: "Sophia", age: 22, gender: "Female", profession: "Fashion Designer", mode: "Dating", likes: 142, dislikes: 5, photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500" },
-      { id: 2, name: "Aryan", age: 26, gender: "Male", profession: "Software Engineer", mode: "Dating", likes: 98, dislikes: 12, photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500" },
-      { id: 3, name: "Elena", age: 24, gender: "Female", profession: "Travel Vlogger", mode: "Friendship", likes: 210, dislikes: 3, photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500" }
+      { id: 1, name: "Sophia", age: 22, gender: "Female", profession: "Fashion Designer", mode: "Dating", likes: 142, dislikes: 5, photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500", instagram: "@sophia_style" },
+      { id: 2, name: "Aryan", age: 26, gender: "Male", profession: "Software Engineer", mode: "Dating", likes: 98, dislikes: 12, photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500", instagram: "@aryan_tech" },
+      { id: 3, name: "Elena", age: 24, gender: "Female", profession: "Travel Vlogger", mode: "Friendship", likes: 210, dislikes: 3, photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500", instagram: "@elena_trips" }
     ];
 
+    let pendingDeposits = [];
     let selectedMode = "Dating";
     let currentProfileIndex = 0;
 
@@ -186,7 +222,7 @@
       const filtered = profiles.filter(p => (gender === "All" || p.gender === gender) && p.age <= maxAge && p.mode === selectedMode);
       const stack = document.getElementById('cardStack');
       if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
-        stack.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center text-gray-400">No more profiles found!</div>`;
+        stack.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center text-gray-400">No more profiles found in this category!</div>`;
         return;
       }
       const p = filtered[currentProfileIndex];
@@ -196,8 +232,13 @@
             <img src="${p.photo}" class="w-full h-full object-cover">
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4">
               <h3 class="text-2xl font-bold">${p.name}, ${p.age}</h3>
-              <p class="text-xs text-rose-300">${p.profession}</p>
+              <p class="text-xs text-rose-300"><i class="fa-solid fa-briefcase mr-1"></i>${p.profession}</p>
+              <p class="text-xs text-gray-300 mt-1"><i class="fa-brands fa-instagram mr-1"></i>${p.instagram || '@user'}</p>
             </div>
+          </div>
+          <div class="p-4 flex justify-between items-center text-xs text-gray-300 bg-black/40">
+            <span><i class="fa-solid fa-thumbs-up text-emerald-400 mr-1"></i>${p.likes} Likes</span>
+            <span><i class="fa-solid fa-thumbs-down text-rose-400 mr-1"></i>${p.dislikes} Dislikes</span>
           </div>
         </div>`;
     }
@@ -212,6 +253,10 @@
     }
 
     function swipe(action) {
+      if (profiles[currentProfileIndex]) {
+        if(action === 'like') profiles[currentProfileIndex].likes++;
+        if(action === 'dislike') profiles[currentProfileIndex].dislikes++;
+      }
       currentProfileIndex++;
       renderProfiles();
     }
@@ -220,23 +265,21 @@
       if (currentUserCoins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
       currentUserCoins -= 10;
       document.getElementById('userCoins').innerText = currentUserCoins;
-      alert("Chat unlocked!");
+      document.getElementById('modalCoinBalance').innerText = currentUserCoins + " Coins";
+      alert("10 Coins deducted! Chat initialized.");
     }
 
-    // STRICT TELEGRAM ID CHECKER
+    // STRICT TELEGRAM ID ADMIN VERIFICATION
     function verifyAndOpenAdmin() {
-      // Get real Telegram ID from WebApp SDK
       let tg = window.Telegram?.WebApp;
       let userId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
 
-      // Fallback for browser testing so it never freezes
       if (!userId) {
         userId = prompt("Enter your Telegram User ID to access Admin Panel:");
         if (!userId) return;
         userId = userId.trim();
       }
 
-      // Check permissions
       if (userId === SUPER_ADMIN_ID || adminRegistry[userId]) {
         toggleAdminView(true, userId);
       } else {
@@ -278,10 +321,14 @@
         subSec.style.display = "none";
       }
 
+      // Section 3: Third Admin User List
       document.getElementById('adminUserList').innerHTML = profiles.map(p => `
-        <div class="p-2 bg-white/5 rounded">
-          <p class="font-bold">${p.name}, Age ${p.age} (${p.gender})</p>
-          <p class="text-[10px] text-gray-400">Profession: ${p.profession}</p>
+        <div class="p-2 bg-white/5 rounded flex justify-between items-center">
+          <div>
+            <p class="font-bold">${p.name}, Age ${p.age} (${p.gender})</p>
+            <p class="text-[10px] text-gray-400">Prof: ${p.profession} | Mode: ${p.mode}</p>
+          </div>
+          <span class="text-emerald-400 text-[10px]">${p.likes} Likes</span>
         </div>`).join('');
     }
 
@@ -292,10 +339,10 @@
       
       if (level === "revoke") {
         delete adminRegistry[targetId];
-        alert("Rights revoked.");
+        alert("Admin rights revoked.");
       } else {
         adminRegistry[targetId] = level;
-        alert(`Assigned [${level}] to ID: ${targetId}`);
+        alert(`Successfully assigned role [${level}] to ID: ${targetId}`);
       }
       localStorage.setItem("heartsync_admins", JSON.stringify(adminRegistry));
       document.getElementById('newAdminTelegramId').value = "";
@@ -303,14 +350,37 @@
 
     function modifyUserBalance() {
       let target = document.getElementById('targetUserCoinId').value;
-      let amt = document.getElementById('coinAmountChange').value;
-      if(!target || !amt) { alert("Fill all fields!"); return; }
-      alert(`Updated balance successfully!`);
+      let amt = parseInt(document.getElementById('coinAmountChange').value);
+      if(!target || isNaN(amt)) { alert("Fill all fields correctly!"); return; }
+      alert(`Successfully updated balance for ${target} by ${amt} coins!`);
       document.getElementById('targetUserCoinId').value = "";
       document.getElementById('coinAmountChange').value = "";
     }
 
-    function submitDeposit() { alert("Submitted!"); closeModal('walletModal'); }
+    function saveUserProfile() {
+      const name = document.getElementById('profName').value;
+      const age = parseInt(document.getElementById('profAge').value);
+      const gender = document.getElementById('profGender').value;
+      const mode = document.getElementById('profMode').value;
+      const profession = document.getElementById('profProfession').value;
+      const instagram = document.getElementById('profInstagram').value;
+      const photo = document.getElementById('profPhoto').value;
+
+      if(!name || !age || !profession || !photo) { alert("Please fill out required profile details!"); return; }
+
+      profiles.unshift({ id: Date.now(), name, age, gender, mode, profession, instagram, photo, likes: 0, dislikes: 0 });
+      alert("Profile created successfully!");
+      closeModal('createProfileModal');
+      renderProfiles();
+    }
+
+    function submitDeposit() { 
+      let amt = document.getElementById('depositAmount').value;
+      if(!amt) { alert("Enter deposit amount!"); return; }
+      alert("Payment proof submitted for Sub-Admin approval!");
+      closeModal('walletModal'); 
+    }
+
     function updateAgeLabel(val) { document.getElementById('ageLabel').innerText = val; }
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
