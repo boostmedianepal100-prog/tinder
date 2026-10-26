@@ -43,8 +43,8 @@
         <span id="userCoins" class="font-bold text-amber-300">100</span>
       </div>
 
-      <!-- Admin Panel Trigger Button -->
-      <button onclick="checkAdminAccess()" class="p-2 text-rose-300 hover:text-white transition">
+      <!-- Admin Panel Trigger Button (Checked via Telegram ID) -->
+      <button onclick="handleAdminTrigger()" class="p-2 text-rose-300 hover:text-white transition">
         <i class="fa-solid fa-shield-halved text-lg"></i>
       </button>
     </div>
@@ -89,46 +89,59 @@
     </div>
   </main>
 
-  <!-- 3-TIER ADMIN PANEL -->
+  <!-- SECURE ADMIN DASHBOARD (3-Tiers) -->
   <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
     <div class="flex items-center justify-between glass-card p-3 rounded-xl border-amber-500/30">
       <div class="flex items-center space-x-2">
         <i class="fa-solid fa-user-shield text-amber-400 text-xl"></i>
         <div>
           <h2 class="font-bold text-amber-300 text-sm">Admin Control Center</h2>
-          <p id="adminTierBadge" class="text-[10px] text-gray-300">Tier: Loading...</p>
+          <p id="adminRoleDisplay" class="text-[10px] text-gray-300">Role: Loading...</p>
         </div>
       </div>
       <button onclick="closeAdminPanel()" class="text-xs bg-rose-600 px-2 py-1 rounded text-white">Exit</button>
     </div>
 
-    <!-- Tier 3: View Member Status Only (Visible to Tier 3, 2, and 1) -->
+    <!-- SECTION 3: Third Admin Right (View User Information Only) -->
     <div class="glass-card p-4 rounded-xl space-y-3">
-      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> Member Status & Profiles</h3>
+      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> User Information List</h3>
       <div id="adminUserList" class="space-y-2 max-h-40 overflow-y-auto hide-scrollbar text-xs"></div>
     </div>
 
-    <!-- Tier 2: Selected Rights Management (Visible to Tier 2 and 1) -->
-    <div id="tier2Section" class="glass-card p-4 rounded-xl space-y-3 hidden border border-blue-500/30">
-      <h3 class="font-semibold text-blue-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-user-gear mr-1"></i> Selected Rights Admin Panel</h3>
-      <p class="text-[11px] text-gray-300">You can approve/reject deposits and moderate user profiles.</p>
-      <div id="adminDepositRequests" class="space-y-2 max-h-36 overflow-y-auto hide-scrollbar text-xs">
-        <p class="text-gray-400 text-center py-1">No pending deposits.</p>
+    <!-- SECTION 2: Sub Admin Panel (Manage balance, profile check, approve deposits) -->
+    <div id="subAdminSection" class="glass-card p-4 rounded-xl space-y-3 hidden border border-blue-500/30">
+      <h3 class="font-semibold text-blue-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-user-gear mr-1"></i> Sub-Admin Management</h3>
+      <div class="space-y-2 text-xs">
+        <div class="bg-black/40 p-2 rounded-lg">
+          <p class="font-bold text-amber-300 mb-1">Add / Deduct User Balance</p>
+          <div class="flex space-x-1">
+            <input type="text" id="targetUserCoinId" placeholder="User ID / Name" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200">
+            <input type="number" id="coinAmountChange" placeholder="Coins (+/-)" class="w-20 bg-black/60 border border-white/20 rounded p-1 text-rose-200">
+            <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Apply</button>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-2 pt-2">
+        <p class="font-bold text-amber-300 text-xs">Pending Payment Approvals</p>
+        <div id="adminDepositRequests" class="space-y-1 max-h-32 overflow-y-auto hide-scrollbar">
+          <p class="text-gray-400 text-center text-xs py-1">No pending deposits.</p>
+        </div>
       </div>
     </div>
 
-    <!-- Tier 1: Owner Admin Control (Visible ONLY to Owner) -->
-    <div id="tier1Section" class="glass-card p-4 rounded-xl space-y-3 hidden border border-amber-500/40">
-      <h3 class="font-semibold text-amber-400 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-crown mr-1"></i> Owner Admin Privileges</h3>
-      <p class="text-[11px] text-gray-300">Assign roles to user IDs or Telegram usernames:</p>
+    <!-- SECTION 1: Equal Rights Owner Admin (Super Admin ID: 8238330395) -->
+    <div id="ownerAdminSection" class="glass-card p-4 rounded-xl space-y-3 hidden border border-amber-500/40">
+      <h3 class="font-semibold text-amber-400 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-crown mr-1"></i> Super Admin / Equal Rights Manager</h3>
+      <p class="text-[11px] text-gray-300">Assign specific permissions or equal ownership to other user IDs:</p>
       <div class="space-y-2 text-xs">
-        <input type="text" id="targetUserIdentifier" placeholder="Telegram ID or Username" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        <select id="targetAdminTier" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-          <option value="2">Tier 2: Selected Rights Admin</option>
-          <option value="3">Tier 3: View Member Status Only</option>
-          <option value="0">Revoke Admin Rights</option>
+        <input type="text" id="newAdminTelegramId" placeholder="Enter Telegram User ID (e.g. 12345678)" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <select id="selectedAdminLevel" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+          <option value="owner">1. Equal Rights Owner Admin (Full Super Admin)</option>
+          <option value="subadmin">2. Sub Admin (Balance, Deposits, Profiles)</option>
+          <option value="thirdadmin">3. Third Admin (View User Info Only)</option>
+          <option value="revoke">Revoke Admin Access</option>
         </select>
-        <button onclick="assignAdminRole()" class="w-full py-2 bg-amber-600 font-bold rounded-lg text-xs hover:bg-amber-500 transition">Update Admin Permission</button>
+        <button onclick="assignNewAdmin()" class="w-full py-2 bg-amber-600 font-bold rounded-lg text-xs hover:bg-amber-500 transition">Grant Admin Rights</button>
       </div>
     </div>
   </section>
@@ -139,20 +152,6 @@
     <button onclick="openModal('createProfileModal')" class="text-gray-400 hover:text-rose-400 flex flex-col items-center"><i class="fa-solid fa-user-pen text-lg"></i><span class="text-[10px] mt-1">My Profile</span></button>
     <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
   </nav>
-
-  <!-- Admin Verification / Access Modal -->
-  <div id="adminAuthModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-6 rounded-2xl max-w-xs w-full text-center space-y-4 border-amber-500/40">
-      <i class="fa-solid fa-shield-halved text-3xl text-amber-400"></i>
-      <h3 class="font-bold text-lg text-amber-300">Admin Portal Access</h3>
-      <p class="text-xs text-gray-300">Enter your Admin Passcode or ID (Owner default: <code class="text-amber-300">owner123</code>)</p>
-      <input type="password" id="adminPassInput" placeholder="Passcode / ID..." class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-center text-rose-200 outline-none">
-      <div class="flex space-x-2">
-        <button onclick="closeModal('adminAuthModal')" class="flex-1 py-2 bg-gray-700 rounded-lg text-xs">Cancel</button>
-        <button onclick="verifyAdminLogin()" class="flex-1 py-2 bg-amber-600 rounded-lg text-xs font-bold">Login</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Wallet & Deposit Modal -->
   <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -166,7 +165,7 @@
         <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">100 Coins</p>
       </div>
       <div class="space-y-2">
-        <h4 class="font-semibold text-xs text-rose-300">Deposit Coins</h4>
+        <h4 class="font-semibold text-xs text-rose-300">Deposit Coins (Upload Screenshot)</h4>
         <input type="number" id="depositAmount" placeholder="Coins amount" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-xs outline-none">
         <input type="file" id="paymentProof" accept="image/*" class="w-full text-xs text-gray-400">
         <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold text-xs rounded-lg">Submit Proof</button>
@@ -175,9 +174,19 @@
   </div>
 
   <script>
-    // State & Role System (Tier 1: Owner, Tier 2: Selected Rights, Tier 3: View Status, Tier 0: Regular User)
-    let currentUser = { id: "999", name: "Debendra", tier: 1, coins: 100 }; // Default creator set as Owner
-    let authorizedAdmins = { "999": 1, "owner": 1 }; // Store assigned admin tiers
+    // Strict Telegram ID Authentication & Admin Roles Mapping stored in localStorage
+    const SUPER_ADMIN_ID = "8238330395";
+    
+    // Get Telegram User ID if running inside Telegram Mini App, fallback to localStorage or default visitor
+    let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    let currentUserId = tgUser ? String(tgUser.id) : (localStorage.getItem("heartsync_userid") || "visitor_user");
+
+    // Load custom admin registry from localStorage or initialize with Super Admin
+    let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || JSON.stringify({
+      "8238330395": "owner"
+    }));
+
+    let currentUserCoins = 100;
 
     let profiles = [
       { id: 1, name: "Sophia", age: 22, gender: "Female", profession: "Fashion Designer", mode: "Dating", likes: 142, dislikes: 5, photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500", instagram: "@sophia_style" },
@@ -233,88 +242,44 @@
     }
 
     function openChat() {
-      if (currentUser.coins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
-      currentUser.coins -= 10;
-      document.getElementById('userCoins').innerText = currentUser.coins;
+      if (currentUserCoins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
+      currentUserCoins -= 10;
+      document.getElementById('userCoins').innerText = currentUserCoins;
       alert("Chat session unlocked!");
     }
 
-    function checkAdminAccess() {
-      if (currentUser.tier > 0) {
+    // Strict Admin Access Control triggered by Shield Button
+    function handleAdminTrigger() {
+      let role = adminRegistry[currentUserId];
+      
+      // If testing locally and user wants to simulate super admin, or if matching Telegram ID 8238330395
+      if (currentUserId === SUPER_ADMIN_ID || role) {
         toggleAdminView(true);
       } else {
-        openModal('adminAuthModal');
+        // Prompt for ID / Secret verification to test or grant access
+        let inputId = prompt("🔒 Access Restricted to Authorized Admins.\nEnter your Telegram User ID:");
+        if (inputId) {
+          currentUserId = inputId.trim();
+          localStorage.setItem("heartsync_userid", currentUserId);
+          if (adminRegistry[currentUserId] || currentUserId === SUPER_ADMIN_ID) {
+            toggleAdminView(true);
+          } else {
+            alert("Access Denied: This Telegram ID is not authorized.");
+          }
+        }
       }
-    }
-
-    function verifyAdminLogin() {
-      const val = document.getElementById('adminPassInput').value;
-      if (val === "owner123") {
-        currentUser.tier = 1; // Owner
-      } else if (authorizedAdmins[val]) {
-        currentUser.tier = authorizedAdmins[val];
-      } else {
-        alert("Access Denied! You do not have admin permissions.");
-        return;
-      }
-      closeModal('adminAuthModal');
-      toggleAdminView(true);
     }
 
     function toggleAdminView(show) {
       document.getElementById('mainAppSection').style.display = show ? 'none' : 'block';
       document.getElementById('filterSection').style.display = show ? 'none' : 'block';
       document.getElementById('adminSection').style.display = show ? 'block' : 'none';
-      if (show) renderAdminPanels();
+      if (show) renderAdminDashboard();
     }
 
     function closeAdminPanel() { toggleAdminView(false); }
 
-    function renderAdminPanels() {
-      const badge = document.getElementById('adminTierBadge');
-      const tier2 = document.getElementById('tier2Section');
-      const tier1 = document.getElementById('tier1Section');
-
-      if (currentUser.tier === 1) {
-        badge.innerText = "Access Level: 👑 Owner Admin (Tier 1)";
-        tier2.classList.remove('hidden');
-        tier1.classList.remove('hidden');
-      } else if (currentUser.tier === 2) {
-        badge.innerText = "Access Level: 🛡 Selected Rights Admin (Tier 2)";
-        tier2.classList.remove('hidden');
-        tier1.classList.add('hidden');
-      } else {
-        badge.innerText = "Access Level: 👁 View Member Status Only (Tier 3)";
-        tier2.classList.add('hidden');
-        tier1.classList.add('hidden');
-      }
-
-      // Render Tier 3 Member Status list
-      document.getElementById('adminUserList').innerHTML = profiles.map(p => `
-        <div class="flex items-center justify-between p-2 bg-white/5 rounded-lg">
-          <div><p class="font-bold">${p.name} (${p.gender})</p><p class="text-[10px] text-gray-400">${p.profession}</p></div>
-          <span class="text-emerald-400 text-[10px]">Active</span>
-        </div>`).join('');
-    }
-
-    function assignAdminRole() {
-      const target = document.getElementById('targetUserIdentifier').value;
-      const tier = parseInt(document.getElementById('targetAdminTier').value);
-      if (!target) { alert("Enter user ID or username!"); return; }
-      authorizedAdmins[target] = tier;
-      alert(`Successfully assigned Tier ${tier} permissions to ${target}!`);
-    }
-
-    function submitDeposit() {
-      alert("Deposit proof submitted!");
-      closeModal('walletModal');
-    }
-
-    function updateAgeLabel(val) { document.getElementById('ageLabel').innerText = val; }
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    renderProfiles();
-  </script>
-</body>
-</html>
+    function renderAdminDashboard() {
+      let role = (currentUserId === SUPER_ADMIN_ID) ? "owner" : (adminRegistry[currentUserId] || "thirdadmin");
+      
+      const role
