@@ -29,9 +29,9 @@
 </head>
 <body class="pb-28">
 
-  <!-- SIGN UP / LOGIN MODAL (Mandatory on First Open) -->
+  <!-- SIGN UP / LOGIN MODAL (Mandatory on First Open if not remembered) -->
   <div id="authModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-6 rounded-3xl max-w-sm w-full space-y-4 border-rose-500/40">
+    <div class="glass-card p-6 rounded-3xl max-w-sm w-full space-y-4 border-rose-500/40 max-h-[90vh] overflow-y-auto">
       <div class="text-center space-y-1">
         <i class="fa-solid fa-heart text-rose-500 text-3xl heart-glow"></i>
         <h2 id="authTitle" class="font-bold text-xl text-rose-300">Welcome to HeartSync</h2>
@@ -44,6 +44,7 @@
           <input type="text" id="regFirstName" placeholder="First Name" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
           <input type="text" id="regLastName" placeholder="Last Name" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
         </div>
+        <input type="text" id="regUsername" placeholder="Username (Unique ID)" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
         <input type="tel" id="regPhone" placeholder="Phone Number" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
         <div class="grid grid-cols-2 gap-2">
           <input type="number" id="regAge" placeholder="Age (e.g. 22)" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
@@ -60,7 +61,7 @@
 
       <!-- Login Form Fields -->
       <div id="loginFormFields" class="space-y-3 text-xs hidden">
-        <input type="tel" id="logPhone" placeholder="Phone Number" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
+        <input type="text" id="logUsername" placeholder="Username" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
         <input type="password" id="logPassword" placeholder="Password" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
         <button onclick="submitLogin()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white shadow-lg">Login to Account</button>
         <p class="text-center text-[10px] text-gray-400 pt-1">New user? <span onclick="toggleAuthMode('signup')" class="text-rose-300 underline cursor-pointer">Sign up</span></p>
@@ -81,6 +82,11 @@
         <i class="fa-solid fa-coins text-amber-400 mr-1.5"></i>
         <span id="userCoinsDisplay" class="font-bold text-amber-300">0</span>
       </div>
+
+      <!-- Logout Button -->
+      <button onclick="logoutUser()" title="Logout" class="p-2 text-rose-400 hover:text-white transition">
+        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+      </button>
 
       <!-- Admin Shield Trigger (Restricted to ID: 8238330395) -->
       <button onclick="verifyAndOpenAdmin()" class="p-2 text-rose-300 hover:text-white transition">
@@ -129,7 +135,7 @@
     </div>
   </main>
 
-  <!-- SECURE ADMIN DASHBOARD (3-Tiers + Full User Profile Control) -->
+  <!-- SECURE ADMIN DASHBOARD (3-Tiers + Full Profile Control) -->
   <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
     <div class="flex items-center justify-between glass-card p-3 rounded-xl border-amber-500/30">
       <div class="flex items-center space-x-2">
@@ -153,10 +159,10 @@
       </div>
     </div>
 
-    <!-- SECTION 3: Third Admin & Full User Profiles Control -->
+    <!-- SECTION 3: Third Admin & Full User Profile Inspection/Control -->
     <div class="glass-card p-4 rounded-xl space-y-3">
-      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> 3. Registered Users & Full Profile Inspection</h3>
-      <div id="adminUserList" class="space-y-2 max-h-48 overflow-y-auto hide-scrollbar text-xs"></div>
+      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> 3. Registered Users & Full Profile Control</h3>
+      <div id="adminUserList" class="space-y-2 max-h-56 overflow-y-auto hide-scrollbar text-xs"></div>
     </div>
 
     <!-- SECTION 2: Sub Admin Panel (Balance & Payments) -->
@@ -166,7 +172,7 @@
         <div class="bg-black/40 p-2 rounded-lg space-y-2">
           <p class="font-bold text-amber-300">Add / Deduct User Coins</p>
           <div class="flex space-x-1">
-            <input type="text" id="targetUserCoinId" placeholder="Phone / User ID" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
+            <input type="text" id="targetUserCoinId" placeholder="Username" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
             <input type="number" id="coinAmountChange" placeholder="+/- Coins" class="w-20 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
             <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Apply</button>
           </div>
@@ -195,8 +201,38 @@
   <nav class="fixed bottom-0 left-0 right-0 glass-card border-t border-rose-500/20 py-3 px-6 flex justify-around z-40 max-w-md mx-auto">
     <button onclick="switchTab('feed')" id="nav-feed" class="text-rose-400 flex flex-col items-center"><i class="fa-solid fa-fire text-lg"></i><span class="text-[10px] mt-1">Discover</span></button>
     <button onclick="claimDailyBonus()" class="text-amber-400 hover:text-amber-300 flex flex-col items-center"><i class="fa-solid fa-gift text-lg"></i><span class="text-[10px] mt-1">Daily +5</span></button>
+    <button onclick="openModal('createProfileModal')" class="text-gray-400 hover:text-rose-400 flex flex-col items-center"><i class="fa-solid fa-user-pen text-lg"></i><span class="text-[10px] mt-1">My Profile</span></button>
     <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
   </nav>
+
+  <!-- Profile Creation Modal with 5 to 10 Image File Uploads -->
+  <div id="createProfileModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-3 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <h3 class="font-bold text-lg text-rose-300"><i class="fa-solid fa-user-pen mr-2"></i>My Profile & Photos (5-10 Pics)</h3>
+        <button onclick="closeModal('createProfileModal')" class="text-gray-400 hover:text-white">&times;</button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <input type="text" id="profProfession" placeholder="Profession / Bio" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <input type="text" id="profInstagram" placeholder="Instagram Handle" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <select id="profModeSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+          <option value="Dating">Dating</option>
+          <option value="Friendship">Friendship</option>
+          <option value="Blind Date">Blind Date</option>
+        </select>
+        
+        <div>
+          <label class="block text-amber-300 font-semibold mb-1">Upload Profile Photos (Select 5 to 10 image files):</label>
+          <input type="file" id="profileImageFiles" accept="image/*" multiple onchange="handleImageFilesUpload(this)" class="w-full text-gray-400 text-xs bg-black/40 p-2 rounded-lg border border-white/20">
+          <p id="imageCountStatus" class="text-[10px] text-gray-400 mt-1">0 images selected</p>
+        </div>
+
+        <div id="imagePreviewContainer" class="grid grid-cols-5 gap-1 max-h-24 overflow-y-auto"></div>
+
+        <button onclick="saveUserProfilePhotos()" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white">Save Profile & Photos</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Wallet Modal with Deposit & Withdraw Tabs -->
   <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -207,7 +243,7 @@
       </div>
 
       <div class="bg-rose-950/40 p-3 rounded-xl border border-rose-500/20 text-center">
-        <p class="text-xs text-gray-400">Account: <b id="displayUserPhone" class="text-amber-200"></b></p>
+        <p class="text-xs text-gray-400">Username: <b id="displayUsername" class="text-amber-200"></b></p>
         <p class="text-xs text-gray-400 mt-1">Available Balance</p>
         <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">0 Coins</p>
       </div>
@@ -241,15 +277,15 @@
     const SUPER_ADMIN_ID = "8238330395";
     let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || "{}");
 
-    // All Registered Users Database in localStorage
+    // All Registered Users Database in localStorage keyed by username
     let registeredUsers = JSON.parse(localStorage.getItem("heartsync_registered_users") || "{}");
-    let activeSessionPhone = localStorage.getItem("heartsync_active_session") || null;
+    let activeSessionUsername = localStorage.getItem("heartsync_active_session") || null;
 
     // Check if user is logged in
-    if (!activeSessionPhone || !registeredUsers[activeSessionPhone]) {
+    if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
       document.getElementById('authModal').classList.remove('hidden');
     } else {
-      initUserSession(activeSessionPhone);
+      initUserSession(activeSessionUsername);
     }
 
     function toggleAuthMode(mode) {
@@ -267,62 +303,74 @@
     function submitRegistration() {
       const firstName = document.getElementById('regFirstName').value.trim();
       const lastName = document.getElementById('regLastName').value.trim();
+      const username = document.getElementById('regUsername').value.trim().toLowerCase();
       const phone = document.getElementById('regPhone').value.trim();
       const age = parseInt(document.getElementById('regAge').value);
       const gender = document.getElementById('regGender').value;
       const password = document.getElementById('regPassword').value;
 
-      if (!firstName || !lastName || !phone || !age || !password) {
-        alert("Please fill out all sign up fields!");
+      if (!firstName || !lastName || !username || !phone || !age || !password) {
+        alert("Please fill out all sign up fields including username!");
         return;
       }
 
-      if (registeredUsers[phone]) {
-        alert("An account with this phone number already exists! Please login.");
-        toggleAuthMode('login');
+      if (registeredUsers[username]) {
+        alert("Username already taken! Please choose another or login.");
         return;
       }
 
       // Create new user profile with 100 coins signup bonus
-      registeredUsers[phone] = {
-        firstName, lastName, phone, age, gender, password,
+      registeredUsers[username] = {
+        firstName, lastName, username, phone, age, gender, password,
         coins: 100,
         lastDailyClaim: 0,
+        profession: "Member",
+        instagram: "@" + username,
+        mode: "Dating",
+        photos: ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500"],
         createdAt: new Date().toISOString()
       };
 
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      localStorage.setItem("heartsync_active_session", phone);
+      localStorage.setItem("heartsync_active_session", username);
       
       alert("Registration successful! You received 100 Coins Signup Bonus 🎉");
       document.getElementById('authModal').classList.add('hidden');
-      initUserSession(phone);
+      initUserSession(username);
+      syncProfilesList();
     }
 
     function submitLogin() {
-      const phone = document.getElementById('logPhone').value.trim();
+      const username = document.getElementById('logUsername').value.trim().toLowerCase();
       const password = document.getElementById('logPassword').value;
 
-      if (!phone || !password) {
-        alert("Please enter phone number and password!");
+      if (!username || !password) {
+        alert("Please enter username and password!");
         return;
       }
 
-      let user = registeredUsers[phone];
+      let user = registeredUsers[username];
       if (!user || user.password !== password) {
-        alert("Invalid phone number or password!");
+        alert("Invalid username or password!");
         return;
       }
 
-      localStorage.setItem("heartsync_active_session", phone);
+      localStorage.setItem("heartsync_active_session", username);
       document.getElementById('authModal').classList.add('hidden');
-      initUserSession(phone);
+      initUserSession(username);
+      syncProfilesList();
     }
 
-    function initUserSession(phone) {
-      let user = registeredUsers[phone];
-      document.getElementById('displayUserPhone').innerText = phone + ` (${user.firstName})`;
+    function logoutUser() {
+      localStorage.removeItem("heartsync_active_session");
+      location.reload();
+    }
+
+    function initUserSession(username) {
+      let user = registeredUsers[username];
+      document.getElementById('displayUsername').innerText = "@" + username + ` (${user.firstName})`;
       updateCoinDisplays(user.coins);
+      syncProfilesList();
     }
 
     function updateCoinDisplays(coins) {
@@ -332,8 +380,8 @@
 
     // 24-Hour Daily Login Bonus (+5 Coins)
     function claimDailyBonus() {
-      if (!activeSessionPhone || !registeredUsers[activeSessionPhone]) return;
-      let user = registeredUsers[activeSessionPhone];
+      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) return;
+      let user = registeredUsers[activeSessionUsername];
       let now = Date.now();
       let twentyFourHours = 24 * 60 * 60 * 1000;
 
@@ -345,7 +393,7 @@
 
       user.coins += 5;
       user.lastDailyClaim = now;
-      registeredUsers[activeSessionPhone] = user;
+      registeredUsers[activeSessionUsername] = user;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       updateCoinDisplays(user.coins);
       alert("Successfully claimed +5 Coins Daily Login Bonus! 🎉");
@@ -356,11 +404,30 @@
       { name: "eSewa / Khalti", details: "9800000000 (Name: HeartSync)" }
     ]));
 
-    let profiles = [
-      { id: 1, name: "Sophia", age: 22, gender: "Female", profession: "Fashion Designer", mode: "Dating", likes: 142, dislikes: 5, photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500", instagram: "@sophia_style" },
-      { id: 2, name: "Aryan", age: 26, gender: "Male", profession: "Software Engineer", mode: "Dating", likes: 98, dislikes: 12, photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500", instagram: "@aryan_tech" },
-      { id: 3, name: "Elena", age: 24, gender: "Female", profession: "Travel Vlogger", mode: "Friendship", likes: 210, dislikes: 3, photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500", instagram: "@elena_trips" }
-    ];
+    let profiles = [];
+    let tempUploadedPhotos = [];
+
+    function syncProfilesList() {
+      profiles = [];
+      for (let uname in registeredUsers) {
+        let u = registeredUsers[uname];
+        profiles.push({
+          id: uname,
+          name: u.firstName + " " + u.lastName,
+          username: u.username,
+          age: u.age,
+          gender: u.gender,
+          profession: u.profession || "Member",
+          mode: u.mode || "Dating",
+          likes: u.likes || 12,
+          dislikes: u.dislikes || 2,
+          photos: u.photos && u.photos.length > 0 ? u.photos : ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500"],
+          currentPhotoIdx: 0,
+          instagram: u.instagram || ("@" + u.username)
+        });
+      }
+      renderProfiles();
+    }
 
     let selectedMode = "Dating";
     let currentProfileIndex = 0;
@@ -375,16 +442,35 @@
         return;
       }
       const p = filtered[currentProfileIndex];
+      const activePhoto = p.photos[p.currentPhotoIdx || 0];
+
       stack.innerHTML = `
         <div class="glass-card rounded-3xl overflow-hidden border border-rose-500/20 shadow-2xl">
           <div class="relative h-96">
-            <img src="${p.photo}" class="w-full h-full object-cover">
+            <img src="${activePhoto}" class="w-full h-full object-cover">
+            ${p.photos.length > 1 ? `
+              <div class="absolute top-2 left-2 right-2 flex space-x-1 z-10">
+                ${p.photos.map((_, idx) => `<div class="h-1 flex-1 rounded-full ${idx === (p.currentPhotoIdx || 0) ? 'bg-rose-500' : 'bg-white/40'}"></div>`).join('')}
+              </div>
+              <button onclick="changeCardPhoto('${p.id}', -1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+              <button onclick="changeCardPhoto('${p.id}', 1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            ` : ''}
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4">
               <h3 class="text-2xl font-bold">${p.name}, ${p.age}</h3>
-              <p class="text-xs text-rose-300"><i class="fa-solid fa-briefcase mr-1"></i>${p.profession}</p>
+              <p class="text-xs text-rose-300"><i class="fa-solid fa-briefcase mr-1"></i>${p.profession} (@${p.username})</p>
             </div>
           </div>
         </div>`;
+    }
+
+    function changeCardPhoto(profileId, direction) {
+      let p = profiles.find(x => x.id === profileId);
+      if (p && p.photos) {
+        p.currentPhotoIdx = (p.currentPhotoIdx || 0) + direction;
+        if (p.currentPhotoIdx < 0) p.currentPhotoIdx = p.photos.length - 1;
+        if (p.currentPhotoIdx >= p.photos.length) p.currentPhotoIdx = 0;
+        renderProfiles();
+      }
     }
 
     function setMode(mode) {
@@ -402,13 +488,63 @@
     }
 
     function openChat() {
-      let user = registeredUsers[activeSessionPhone];
+      let user = registeredUsers[activeSessionUsername];
       if (user.coins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
       user.coins -= 10;
-      registeredUsers[activeSessionPhone] = user;
+      registeredUsers[activeSessionUsername] = user;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       updateCoinDisplays(user.coins);
       alert("10 Coins deducted! Chat initialized.");
+    }
+
+    // MULTI-IMAGE FILE UPLOAD HANDLER (5 to 10 images)
+    function handleImageFilesUpload(inputElement) {
+      const files = inputElement.files;
+      if (files.length < 1) return;
+      if (files.length > 10) {
+        alert("Please select a maximum of 10 pictures.");
+        return;
+      }
+
+      tempUploadedPhotos = [];
+      const container = document.getElementById('imagePreviewContainer');
+      container.innerHTML = "";
+
+      let processedCount = 0;
+      for (let i = 0; i < files.length; i++) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          tempUploadedPhotos.push(e.target.result);
+          container.innerHTML += `<img src="${e.target.result}" class="w-12 h-12 object-cover rounded border border-rose-500/40">`;
+          processedCount++;
+          document.getElementById('imageCountStatus').innerText = `${processedCount} image(s) loaded successfully`;
+        }
+        reader.readAsDataURL(files[i]);
+      }
+    }
+
+    function saveUserProfilePhotos() {
+      let user = registeredUsers[activeSessionUsername];
+      const profession = document.getElementById('profProfession').value.trim();
+      const instagram = document.getElementById('profInstagram').value.trim();
+      const mode = document.getElementById('profModeSelect').value;
+
+      if (profession) user.profession = profession;
+      if (instagram) user.instagram = instagram;
+      user.mode = mode;
+
+      if (tempUploadedPhotos.length > 0) {
+        if (tempUploadedPhotos.length < 5) {
+          alert("Warning: You uploaded fewer than 5 images. Recommended is 5 to 10 photos!");
+        }
+        user.photos = tempUploadedPhotos;
+      }
+
+      registeredUsers[activeSessionUsername] = user;
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      alert("Profile and photos saved successfully!");
+      closeModal('createProfileModal');
+      syncProfilesList();
     }
 
     // STRICT TELEGRAM ID ADMIN VERIFICATION
@@ -469,21 +605,23 @@
     }
 
     function renderAdminDashboardData() {
-      // Render Full Registered Users & Profiles Inspection for Admins
+      // Render Full Registered Users & Complete Profile Control for Admins
       let userListHtml = "";
-      for (let phone in registeredUsers) {
-        let u = registeredUsers[phone];
+      for (let uname in registeredUsers) {
+        let u = registeredUsers[uname];
+        let photoCount = u.photos ? u.photos.length : 0;
         userListHtml += `
-          <div class="p-2.5 bg-white/5 rounded-lg space-y-1 border border-white/10">
+          <div class="p-2.5 bg-white/5 rounded-lg space-y-1.5 border border-white/10">
             <div class="flex justify-between items-center">
-              <p class="font-bold text-rose-300">${u.firstName} ${u.lastName}</p>
+              <p class="font-bold text-rose-300">@${u.username} (${u.firstName} ${u.lastName})</p>
               <span class="text-amber-300 font-bold">${u.coins} Coins</span>
             </div>
-            <p class="text-[10px] text-gray-300">📱 Phone: ${u.phone} | Age: ${u.age} | Gender: ${u.gender}</p>
-            <p class="text-[10px] text-gray-400">🔑 Password: <code class="text-amber-200">${u.password}</code></p>
-            <div class="flex space-x-2 pt-1">
-              <button onclick="adminEditUserCoins('${phone}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold">+50 Coins</button>
-              <button onclick="adminResetPassword('${phone}')" class="bg-blue-600 px-2 py-0.5 rounded text-[10px] font-bold">Reset Pwd</button>
+            <p class="text-[10px] text-gray-300">Phone: ${u.phone} | Age: ${u.age} | Gender: ${u.gender} | Photos: ${photoCount}</p>
+            <p class="text-[10px] text-gray-400">Password: <code class="text-amber-200">${u.password}</code> | Profession: ${u.profession || 'N/A'}</p>
+            <div class="flex space-x-2 pt-1 flex-wrap gap-1">
+              <button onclick="adminEditUserCoins('${uname}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold">+50 Coins</button>
+              <button onclick="adminResetPassword('${uname}')" class="bg-blue-600 px-2 py-0.5 rounded text-[10px] font-bold">Reset Pwd</button>
+              <button onclick="adminDeleteUser('${uname}')" class="bg-rose-600 px-2 py-0.5 rounded text-[10px] font-bold">Delete Profile</button>
             </div>
           </div>`;
       }
@@ -535,40 +673,50 @@
     }
 
     function modifyUserBalance() {
-      let targetPhone = document.getElementById('targetUserCoinId').value.trim();
+      let targetUsername = document.getElementById('targetUserCoinId').value.trim().toLowerCase();
       let amt = parseInt(document.getElementById('coinAmountChange').value);
-      if (!targetPhone || isNaN(amt)) { alert("Enter valid phone/ID and amount!"); return; }
+      if (!targetUsername || isNaN(amt)) { alert("Enter valid username and amount!"); return; }
 
-      if (!registeredUsers[targetPhone]) { alert("User with this phone number not found!"); return; }
+      if (!registeredUsers[targetUsername]) { alert("User with this username not found!"); return; }
 
-      registeredUsers[targetPhone].coins += amt;
+      registeredUsers[targetUsername].coins += amt;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
 
-      if (targetPhone === activeSessionPhone) {
-        updateCoinDisplays(registeredUsers[activeSessionPhone].coins);
+      if (targetUsername === activeSessionUsername) {
+        updateCoinDisplays(registeredUsers[activeSessionUsername].coins);
       }
 
-      alert(`Success! User ${targetPhone} balance updated by ${amt}.`);
+      alert(`Success! User @${targetUsername} balance updated by ${amt}.`);
       document.getElementById('targetUserCoinId').value = "";
       document.getElementById('coinAmountChange').value = "";
       renderAdminDashboardData();
     }
 
-    function adminEditUserCoins(phone, amt) {
-      registeredUsers[phone].coins += amt;
+    function adminEditUserCoins(username, amt) {
+      registeredUsers[username].coins += amt;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      if (phone === activeSessionPhone) updateCoinDisplays(registeredUsers[activeSessionPhone].coins);
+      if (username === activeSessionUsername) updateCoinDisplays(registeredUsers[activeSessionUsername].coins);
       renderAdminDashboardData();
-      alert(`Added ${amt} coins to ${phone}!`);
+      alert(`Added ${amt} coins to @${username}!`);
     }
 
-    function adminResetPassword(phone) {
-      let newPwd = prompt("Enter new password for user " + phone + ":");
+    function adminResetPassword(username) {
+      let newPwd = prompt("Enter new password for @_" + username + ":");
       if (newPwd) {
-        registeredUsers[phone].password = newPwd;
+        registeredUsers[username].password = newPwd;
         localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
         alert("Password updated successfully!");
         renderAdminDashboardData();
+      }
+    }
+
+    function adminDeleteUser(username) {
+      if (confirm(`Are you sure you want to delete profile @${username}?`)) {
+        delete registeredUsers[username];
+        localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+        renderAdminDashboardData();
+        syncProfilesList();
+        alert("Profile deleted successfully.");
       }
     }
 
@@ -612,13 +760,13 @@
     function submitWithdrawal() {
       let amt = parseInt(document.getElementById('withdrawAmount').value);
       let details = document.getElementById('withdrawDetails').value.trim();
-      let user = registeredUsers[activeSessionPhone];
+      let user = registeredUsers[activeSessionUsername];
 
       if(!amt || isNaN(amt) || amt <= 0 || !details) { alert("Enter valid amount and destination details!"); return; }
       if (user.coins < amt) { alert("Insufficient coin balance for withdrawal!"); return; }
 
       user.coins -= amt;
-      registeredUsers[activeSessionPhone] = user;
+      registeredUsers[activeSessionUsername] = user;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       updateCoinDisplays(user.coins);
 
@@ -632,7 +780,7 @@
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    renderProfiles();
+    syncProfilesList();
     renderUserDepositMethods();
   </script>
 </body>
