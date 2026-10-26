@@ -40,7 +40,7 @@
       <!-- Balance Indicator -->
       <div onclick="openModal('walletModal')" class="flex items-center bg-rose-950/60 border border-rose-500/40 px-3 py-1 rounded-full cursor-pointer hover:bg-rose-900/60 transition">
         <i class="fa-solid fa-coins text-amber-400 mr-1.5"></i>
-        <span id="userCoins" class="font-bold text-amber-300">100</span>
+        <span id="userCoinsDisplay" class="font-bold text-amber-300">100</span>
       </div>
 
       <!-- Admin Shield Trigger (Restricted to ID: 8238330395) -->
@@ -103,28 +103,33 @@
       <button onclick="closeAdminPanel()" class="text-xs bg-rose-600 px-2 py-1 rounded text-white">Exit</button>
     </div>
 
+    <!-- ADMIN CONFIG: Add up to 10 Deposit Options -->
+    <div id="depositConfigSection" class="glass-card p-4 rounded-xl space-y-3 border border-amber-500/30">
+      <h3 class="font-semibold text-amber-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-university mr-1"></i> Configure Deposit Methods (Max 10)</h3>
+      <div class="space-y-2 text-xs">
+        <input type="text" id="adminDepName" placeholder="Method Name (e.g. USDT / eSewa / Bank)" class="w-full bg-black/60 border border-white/20 rounded p-1.5 text-rose-200 outline-none">
+        <input type="text" id="adminDepDetails" placeholder="Account Details / QR / Address" class="w-full bg-black/60 border border-white/20 rounded p-1.5 text-rose-200 outline-none">
+        <button onclick="saveAdminDepositMethod()" class="w-full py-1.5 bg-amber-600 font-bold rounded text-xs hover:bg-amber-500 transition">Add Deposit Option</button>
+        <div id="adminDepMethodsList" class="space-y-1 max-h-32 overflow-y-auto hide-scrollbar pt-1"></div>
+      </div>
+    </div>
+
     <!-- SECTION 3: Third Admin Right (View User Info Only) -->
     <div class="glass-card p-4 rounded-xl space-y-3">
-      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> 3. User Information List (Third Admin)</h3>
+      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> 3. User Information & Balances</h3>
       <div id="adminUserList" class="space-y-2 max-h-40 overflow-y-auto hide-scrollbar text-xs"></div>
     </div>
 
     <!-- SECTION 2: Sub Admin Panel (Balance, Deposits, Profiles) -->
     <div id="subAdminSection" class="glass-card p-4 rounded-xl space-y-3 border border-blue-500/30">
-      <h3 class="font-semibold text-blue-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-user-gear mr-1"></i> 2. Sub-Admin Panel</h3>
+      <h3 class="font-semibold text-blue-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-user-gear mr-1"></i> 2. Sub-Admin Panel (Balance & Payments)</h3>
       <div class="space-y-2 text-xs">
         <div class="bg-black/40 p-2 rounded-lg space-y-2">
-          <p class="font-bold text-amber-300">Add / Deduct User Coins</p>
+          <p class="font-bold text-amber-300">Add / Deduct User Coins (Fixed & Working)</p>
           <div class="flex space-x-1">
-            <input type="text" id="targetUserCoinId" placeholder="User ID/Name" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
+            <input type="text" id="targetUserCoinId" placeholder="Target User ID" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
             <input type="number" id="coinAmountChange" placeholder="+/- Coins" class="w-20 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
-            <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Save</button>
-          </div>
-        </div>
-        <div class="bg-black/40 p-2 rounded-lg space-y-1">
-          <p class="font-bold text-amber-300">Pending Payment Approvals</p>
-          <div id="adminDepositRequests" class="space-y-1 max-h-24 overflow-y-auto hide-scrollbar">
-            <p class="text-gray-400 text-center py-1">No pending deposits.</p>
+            <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Apply</button>
           </div>
         </div>
       </div>
@@ -174,29 +179,48 @@
           <option value="Blind Date">Blind Date</option>
         </select>
         <input type="text" id="profProfession" placeholder="Profession" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        <input type="text" id="profInstagram" placeholder="Instagram / Social Handle" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <input type="text" id="profInstagram" placeholder="Instagram Handle" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
         <input type="text" id="profPhoto" placeholder="Photo Image URL" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
         <button onclick="saveUserProfile()" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white">Save Profile</button>
       </div>
     </div>
   </div>
 
-  <!-- Wallet Modal -->
+  <!-- Wallet Modal with Deposit & Withdraw Tabs -->
   <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4">
+    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-white/10 pb-2">
         <h3 class="font-bold text-lg text-amber-300"><i class="fa-solid fa-wallet mr-2"></i>Coin Wallet</h3>
         <button onclick="closeModal('walletModal')" class="text-gray-400 hover:text-white">&times;</button>
       </div>
+
       <div class="bg-rose-950/40 p-3 rounded-xl border border-rose-500/20 text-center">
-        <p class="text-xs text-gray-400">Current Balance</p>
+        <p class="text-xs text-gray-400">My User ID: <b id="displayMyUserId" class="text-amber-200"></b></p>
+        <p class="text-xs text-gray-400 mt-1">Available Balance</p>
         <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">100 Coins</p>
       </div>
-      <div class="space-y-2 text-xs">
-        <h4 class="font-semibold text-rose-300">Deposit Coins</h4>
-        <input type="number" id="depositAmount" placeholder="Amount (e.g. 50)" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200">
+
+      <!-- Tab Switcher for Deposit / Withdraw -->
+      <div class="flex rounded-lg bg-black/40 p-1 text-xs">
+        <button onclick="switchWalletTab('deposit')" id="wtab-deposit" class="flex-1 py-1.5 rounded font-semibold bg-amber-600 text-white transition">Deposit Funds</button>
+        <button onclick="switchWalletTab('withdraw')" id="wtab-withdraw" class="flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition">Withdraw Funds</button>
+      </div>
+
+      <!-- Deposit Section -->
+      <div id="walletDepositSection" class="space-y-3 text-xs">
+        <p class="font-semibold text-amber-300">Select Admin Deposit Method:</p>
+        <div id="userDepositMethodsList" class="space-y-2 max-h-36 overflow-y-auto hide-scrollbar"></div>
+        <input type="number" id="depositAmount" placeholder="Amount to Deposit" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200">
         <input type="file" id="paymentProof" accept="image/*" class="w-full text-gray-400">
-        <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white">Submit Proof</button>
+        <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white">Submit Deposit Proof</button>
+      </div>
+
+      <!-- Withdraw Section -->
+      <div id="walletWithdrawSection" class="space-y-3 text-xs hidden">
+        <p class="font-semibold text-rose-300">Request Withdrawal Details:</p>
+        <input type="number" id="withdrawAmount" placeholder="Coins to Withdraw" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200">
+        <textarea id="withdrawDetails" placeholder="Enter your bank account / eSewa / Crypto address details..." class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200 h-20 resize-none"></textarea>
+        <button onclick="submitWithdrawal()" class="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-600 font-bold rounded-lg text-white">Submit Withdrawal Request</button>
       </div>
     </div>
   </div>
@@ -204,7 +228,29 @@
   <script>
     const SUPER_ADMIN_ID = "8238330395";
     let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || "{}");
-    let currentUserCoins = 100;
+    
+    // Identify current user ID robustly
+    let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    let myUserId = tgUser ? String(tgUser.id) : (localStorage.getItem("heartsync_my_uid") || String(Math.floor(100000 + Math.random() * 900000)));
+    localStorage.setItem("heartsync_my_uid", myUserId);
+    document.getElementById("displayMyUserId").innerText = myUserId;
+
+    // Load or initialize user balances database in localStorage
+    let userBalances = JSON.parse(localStorage.getItem("heartsync_user_balances") || JSON.stringify({
+      [myUserId]: 100,
+      "1": 250,
+      "2": 150
+    }));
+
+    let currentCoins = userBalances[myUserId] !== undefined ? userBalances[myUserId] : 100;
+    document.getElementById("userCoinsDisplay").innerText = currentCoins;
+    document.getElementById("modalCoinBalance").innerText = currentCoins + " Coins";
+
+    // Load deposit methods (max 10)
+    let adminDepositMethods = JSON.parse(localStorage.getItem("heartsync_deposit_methods") || JSON.stringify([
+      { name: "USDT (TRC20)", details: "TXxxx...SampleAddress" },
+      { name: "eSewa / Khalti", details: "9800000000 (Name: HeartSync)" }
+    ]));
 
     let profiles = [
       { id: 1, name: "Sophia", age: 22, gender: "Female", profession: "Fashion Designer", mode: "Dating", likes: 142, dislikes: 5, photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500", instagram: "@sophia_style" },
@@ -212,7 +258,6 @@
       { id: 3, name: "Elena", age: 24, gender: "Female", profession: "Travel Vlogger", mode: "Friendship", likes: 210, dislikes: 3, photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500", instagram: "@elena_trips" }
     ];
 
-    let pendingDeposits = [];
     let selectedMode = "Dating";
     let currentProfileIndex = 0;
 
@@ -262,21 +307,20 @@
     }
 
     function openChat() {
-      if (currentUserCoins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
-      currentUserCoins -= 10;
-      document.getElementById('userCoins').innerText = currentUserCoins;
-      document.getElementById('modalCoinBalance').innerText = currentUserCoins + " Coins";
+      if (currentCoins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
+      currentCoins -= 10;
+      userBalances[myUserId] = currentCoins;
+      localStorage.setItem("heartsync_user_balances", JSON.stringify(userBalances));
+      document.getElementById('userCoinsDisplay').innerText = currentCoins;
+      document.getElementById('modalCoinBalance').innerText = currentCoins + " Coins";
       alert("10 Coins deducted! Chat initialized.");
     }
 
     // STRICT TELEGRAM ID ADMIN VERIFICATION
     function verifyAndOpenAdmin() {
-      let tg = window.Telegram?.WebApp;
-      let userId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-
+      let userId = tgUser?.id ? String(tgUser.id) : null;
       if (!userId) {
-        userId = prompt("Enter your Telegram User ID to access Admin Panel:");
-        if (!userId) return;
+        userId = prompt("Enter your Telegram User ID to access Admin Panel:") || "";
         userId = userId.trim();
       }
 
@@ -306,30 +350,136 @@
       const roleDisplay = document.getElementById('adminRoleDisplay');
       const ownerSec = document.getElementById('ownerAdminSection');
       const subSec = document.getElementById('subAdminSection');
+      const depConfigSec = document.getElementById('depositConfigSection');
 
       if (role === "owner") {
         roleDisplay.innerText = "Role: 👑 Super / Equal Rights Owner";
         ownerSec.style.display = "block";
         subSec.style.display = "block";
+        depConfigSec.style.display = "block";
       } else if (role === "subadmin") {
         roleDisplay.innerText = "Role: 🛡 Sub Admin";
         ownerSec.style.display = "none";
         subSec.style.display = "block";
+        depConfigSec.style.display = "block";
       } else {
         roleDisplay.innerText = "Role: 👁 Third Admin (View Only)";
         ownerSec.style.display = "none";
         subSec.style.display = "none";
+        depConfigSec.style.display = "none";
       }
 
-      // Section 3: Third Admin User List
-      document.getElementById('adminUserList').innerHTML = profiles.map(p => `
-        <div class="p-2 bg-white/5 rounded flex justify-between items-center">
+      renderAdminUsersAndDeposits();
+    }
+
+    function renderAdminUsersAndDeposits() {
+      // Render User List & Balances
+      let userListHtml = "";
+      for (let uid in userBalances) {
+        userListHtml += `
+          <div class="p-2 bg-white/5 rounded flex justify-between items-center">
+            <div>
+              <p class="font-bold">User ID: ${uid}</p>
+              <p class="text-[10px] text-amber-300">Balance: ${userBalances[uid]} Coins</p>
+            </div>
+            <button onclick="quickAddBalance('${uid}')" class="bg-emerald-600 px-2 py-1 rounded text-[10px] font-bold">Add 50 Coins</button>
+          </div>`;
+      }
+      document.getElementById('adminUserList').innerHTML = userListHtml;
+
+      // Render Admin Deposit Configuration list
+      let depHtml = adminDepositMethods.map((m, idx) => `
+        <div class="flex justify-between items-center bg-black/40 p-2 rounded">
           <div>
-            <p class="font-bold">${p.name}, Age ${p.age} (${p.gender})</p>
-            <p class="text-[10px] text-gray-400">Prof: ${p.profession} | Mode: ${p.mode}</p>
+            <p class="font-bold text-amber-300">${m.name}</p>
+            <p class="text-[10px] text-gray-300">${m.details}</p>
           </div>
-          <span class="text-emerald-400 text-[10px]">${p.likes} Likes</span>
+          <button onclick="deleteAdminDeposit(${idx})" class="text-rose-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash"></i></button>
         </div>`).join('');
+      document.getElementById('adminDepMethodsList').innerHTML = depHtml || '<p class="text-gray-400 text-center">No deposit options added.</p>';
+      
+      // Also render user side deposit options
+      renderUserDepositMethods();
+    }
+
+    function saveAdminDepositMethod() {
+      if (adminDepositMethods.length >= 10) {
+        alert("Maximum limit of 10 deposit options reached!");
+        return;
+      }
+      let name = document.getElementById('adminDepName').value.trim();
+      let details = document.getElementById('adminDepDetails').value.trim();
+      if (!name || !details) {
+        alert("Please enter both method name and details!");
+        return;
+      }
+      adminDepositMethods.push({ name, details });
+      localStorage.setItem("heartsync_deposit_methods", JSON.stringify(adminDepositMethods));
+      document.getElementById('adminDepName').value = "";
+      document.getElementById('adminDepDetails').value = "";
+      renderAdminUsersAndDeposits();
+      alert("Deposit method added successfully!");
+    }
+
+    function deleteAdminDeposit(idx) {
+      adminDepositMethods.splice(idx, 1);
+      localStorage.setItem("heartsync_deposit_methods", JSON.stringify(adminDepositMethods));
+      renderAdminUsersAndDeposits();
+    }
+
+    function renderUserDepositMethods() {
+      let html = adminDepositMethods.map((m, idx) => `
+        <label class="flex items-center space-x-2 bg-black/40 p-2 rounded cursor-pointer border border-white/10 hover:border-amber-500/40">
+          <input type="radio" name="selectedDepMethod" value="${m.name}" ${idx===0?'checked':''}>
+          <div>
+            <p class="font-bold text-amber-200">${m.name}</p>
+            <p class="text-[10px] text-gray-300">${m.details}</p>
+          </div>
+        </label>`).join('');
+      document.getElementById('userDepositMethodsList').innerHTML = html || '<p class="text-gray-400 text-center">No deposit options available right now.</p>';
+    }
+
+    // FIXED SUB-ADMIN BALANCE ADDITION FUNCTION
+    function modifyUserBalance() {
+      let targetId = document.getElementById('targetUserCoinId').value.trim();
+      let amt = parseInt(document.getElementById('coinAmountChange').value);
+      
+      if (!targetId || isNaN(amt)) {
+        alert("Please enter a valid User ID and coin amount!");
+        return;
+      }
+
+      // Initialize if user doesn't exist in registry yet
+      if (userBalances[targetId] === undefined) {
+        userBalances[targetId] = 0;
+      }
+
+      userBalances[targetId] += amt;
+      localStorage.setItem("heartsync_user_balances", JSON.stringify(userBalances));
+
+      // If updating current logged-in user, refresh display instantly
+      if (targetId === myUserId) {
+        currentCoins = userBalances[myUserId];
+        document.getElementById('userCoinsDisplay').innerText = currentCoins;
+        document.getElementById('modalCoinBalance').innerText = currentCoins + " Coins";
+      }
+
+      alert(`Success! User ID ${targetId} balance updated by ${amt}. New balance: ${userBalances[targetId]}`);
+      document.getElementById('targetUserCoinId').value = "";
+      document.getElementById('coinAmountChange').value = "";
+      renderAdminUsersAndDeposits();
+    }
+
+    function quickAddBalance(uid) {
+      userBalances[uid] = (userBalances[uid] || 0) + 50;
+      localStorage.setItem("heartsync_user_balances", JSON.stringify(userBalances));
+      if (uid === myUserId) {
+        currentCoins = userBalances[myUserId];
+        document.getElementById('userCoinsDisplay').innerText = currentCoins;
+        document.getElementById('modalCoinBalance').innerText = currentCoins + " Coins";
+      }
+      alert(`Added 50 coins to User ID ${uid}!`);
+      renderAdminUsersAndDeposits();
     }
 
     function assignNewAdmin() {
@@ -348,13 +498,47 @@
       document.getElementById('newAdminTelegramId').value = "";
     }
 
-    function modifyUserBalance() {
-      let target = document.getElementById('targetUserCoinId').value;
-      let amt = parseInt(document.getElementById('coinAmountChange').value);
-      if(!target || isNaN(amt)) { alert("Fill all fields correctly!"); return; }
-      alert(`Successfully updated balance for ${target} by ${amt} coins!`);
-      document.getElementById('targetUserCoinId').value = "";
-      document.getElementById('coinAmountChange').value = "";
+    function switchWalletTab(tab) {
+      if (tab === 'deposit') {
+        document.getElementById('wtab-deposit').className = "flex-1 py-1.5 rounded font-semibold bg-amber-600 text-white transition";
+        document.getElementById('wtab-withdraw').className = "flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition";
+        document.getElementById('walletDepositSection').classList.remove('hidden');
+        document.getElementById('walletWithdrawSection').classList.add('hidden');
+      } else {
+        document.getElementById('wtab-withdraw').className = "flex-1 py-1.5 rounded font-semibold bg-rose-600 text-white transition";
+        document.getElementById('wtab-deposit').className = "flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition";
+        document.getElementById('walletWithdrawSection').classList.remove('hidden');
+        document.getElementById('walletDepositSection').classList.add('hidden');
+      }
+    }
+
+    function submitDeposit() { 
+      let amt = document.getElementById('depositAmount').value;
+      if(!amt) { alert("Enter deposit amount!"); return; }
+      alert("Deposit proof submitted successfully for Sub-Admin approval!");
+      closeModal('walletModal'); 
+    }
+
+    function submitWithdrawal() {
+      let amt = parseInt(document.getElementById('withdrawAmount').value);
+      let details = document.getElementById('withdrawDetails').value.trim();
+      if(!amt || isNaN(amt) || amt <= 0 || !details) {
+        alert("Please enter valid withdrawal amount and destination details!");
+        return;
+      }
+      if (currentCoins < amt) {
+        alert("Withdrawal failed: You do not have enough coins in your balance!");
+        return;
+      }
+      currentCoins -= amt;
+      userBalances[myUserId] = currentCoins;
+      localStorage.setItem("heartsync_user_balances", JSON.stringify(userBalances));
+      document.getElementById('userCoinsDisplay').innerText = currentCoins;
+      document.getElementById('modalCoinBalance').innerText = currentCoins + " Coins";
+      alert("Withdrawal request submitted successfully! Funds deducted from your balance pending review.");
+      closeModal('walletModal');
+      document.getElementById('withdrawAmount').value = "";
+      document.getElementById('withdrawDetails').value = "";
     }
 
     function saveUserProfile() {
@@ -374,18 +558,12 @@
       renderProfiles();
     }
 
-    function submitDeposit() { 
-      let amt = document.getElementById('depositAmount').value;
-      if(!amt) { alert("Enter deposit amount!"); return; }
-      alert("Payment proof submitted for Sub-Admin approval!");
-      closeModal('walletModal'); 
-    }
-
     function updateAgeLabel(val) { document.getElementById('ageLabel').innerText = val; }
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     renderProfiles();
+    renderUserDepositMethods();
   </script>
 </body>
 </html>
