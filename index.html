@@ -29,7 +29,7 @@
 </head>
 <body class="pb-28">
 
-  <!-- SIGN UP / LOGIN MODAL (Mandatory on First Open if not remembered) -->
+  <!-- SIGN UP / LOGIN MODAL -->
   <div id="authModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="glass-card p-6 rounded-3xl max-w-sm w-full space-y-4 border-rose-500/40 max-h-[90vh] overflow-y-auto">
       <div class="text-center space-y-1">
@@ -38,7 +38,7 @@
         <p class="text-xs text-gray-300">Sign up now & get <b class="text-amber-300">100 Coins Signup Bonus!</b></p>
       </div>
 
-      <!-- Sign Up Form Fields -->
+      <!-- Sign Up Form -->
       <div id="signupFormFields" class="space-y-2.5 text-xs">
         <div class="grid grid-cols-2 gap-2">
           <input type="text" id="regFirstName" placeholder="First Name" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
@@ -59,7 +59,7 @@
         <p class="text-center text-[10px] text-gray-400 pt-1">Already registered? <span onclick="toggleAuthMode('login')" class="text-amber-300 underline cursor-pointer">Login here</span></p>
       </div>
 
-      <!-- Login Form Fields -->
+      <!-- Login Form -->
       <div id="loginFormFields" class="space-y-3 text-xs hidden">
         <input type="text" id="logUsername" placeholder="Username" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
         <input type="password" id="logPassword" placeholder="Password" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
@@ -77,10 +77,12 @@
     </div>
     
     <div class="flex items-center space-x-3">
-      <!-- Balance Indicator -->
-      <div onclick="openModal('walletModal')" class="flex items-center bg-rose-950/60 border border-rose-500/40 px-3 py-1 rounded-full cursor-pointer hover:bg-rose-900/60 transition">
+      <!-- Balance Indicator with USD conversion (50 coins = $1) -->
+      <div onclick="openModal('walletModal')" class="flex items-center bg-rose-950/60 border border-rose-500/40 px-3 py-1 rounded-full cursor-pointer hover:bg-rose-900/60 transition text-xs">
         <i class="fa-solid fa-coins text-amber-400 mr-1.5"></i>
-        <span id="userCoinsDisplay" class="font-bold text-amber-300">0</span>
+        <div>
+          <span id="userCoinsDisplay" class="font-bold text-amber-300">0</span> <span class="text-[10px] text-gray-300">(<span id="userUsdDisplay">$0.00</span>)</span>
+        </div>
       </div>
 
       <!-- Logout Button -->
@@ -88,7 +90,7 @@
         <i class="fa-solid fa-right-from-bracket text-lg"></i>
       </button>
 
-      <!-- Admin Shield Trigger (Restricted to ID: 8238330395) -->
+      <!-- Admin Shield Trigger -->
       <button onclick="verifyAndOpenAdmin()" class="p-2 text-rose-300 hover:text-white transition">
         <i class="fa-solid fa-shield-halved text-lg"></i>
       </button>
@@ -117,7 +119,8 @@
     </div>
   </section>
 
-  <!-- Main Live Profile Swipe Feed -->
+  <!-- MAIN APP VIEWS -->
+  <!-- 1. DISCOVER / SWIPE FEED SECTION -->
   <main class="max-w-md mx-auto px-4" id="mainAppSection">
     <div id="cardStack" class="relative min-h-[460px]"></div>
 
@@ -126,7 +129,7 @@
       <button onclick="swipe('dislike')" class="w-14 h-14 rounded-full glass-card border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg">
         <i class="fa-solid fa-xmark"></i>
       </button>
-      <button onclick="openChat()" class="w-16 h-16 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white flex items-center justify-center text-2xl shadow-xl hover:scale-105 transition">
+      <button onclick="openChatWithCurrentProfile()" class="w-16 h-16 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white flex items-center justify-center text-2xl shadow-xl hover:scale-105 transition">
         <i class="fa-solid fa-comments"></i>
       </button>
       <button onclick="swipe('like')" class="w-14 h-14 rounded-full glass-card border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg">
@@ -134,6 +137,31 @@
       </button>
     </div>
   </main>
+
+  <!-- 2. DEDICATED CHAT PAGE SECTION -->
+  <section id="chatPageSection" class="hidden max-w-md mx-auto px-4 space-y-3">
+    <div class="glass-card p-3 rounded-2xl flex items-center justify-between border-rose-500/30">
+      <div class="flex items-center space-x-3">
+        <button onclick="switchTab('feed')" class="text-rose-400 hover:text-white"><i class="fa-solid fa-arrow-left text-lg"></i></button>
+        <img id="chatHeaderImg" src="" class="w-10 h-10 rounded-full object-cover border border-rose-500">
+        <div>
+          <h3 id="chatHeaderName" class="font-bold text-sm">Chat</h3>
+          <p class="text-[10px] text-emerald-400">Online • 5 coins per message</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Messages Box -->
+    <div id="chatMessagesContainer" class="glass-card p-3 rounded-2xl h-80 overflow-y-auto hide-scrollbar space-y-2 text-xs flex flex-col">
+      <div class="bg-white/10 p-2 rounded-xl self-start max-w-[80%]">Hi! Let's connect and chat 💕 (Costs 5 coins per message)</div>
+    </div>
+
+    <!-- Chat Input Box -->
+    <div class="flex space-x-2">
+      <input type="text" id="chatInputText" placeholder="Type message (Costs 5 coins)..." class="flex-1 bg-black/60 border border-white/20 rounded-xl p-2.5 text-xs text-rose-200 outline-none">
+      <button onclick="sendChatMessage()" class="bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </section>
 
   <!-- SECURE ADMIN DASHBOARD (3-Tiers + Full Profile Control) -->
   <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
@@ -159,7 +187,7 @@
       </div>
     </div>
 
-    <!-- SECTION 3: Third Admin & Full User Profile Inspection/Control -->
+    <!-- SECTION 3: Third Admin & Full User Profile Control -->
     <div class="glass-card p-4 rounded-xl space-y-3">
       <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> 3. Registered Users & Full Profile Control</h3>
       <div id="adminUserList" class="space-y-2 max-h-56 overflow-y-auto hide-scrollbar text-xs"></div>
@@ -238,7 +266,7 @@
   <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-white/10 pb-2">
-        <h3 class="font-bold text-lg text-amber-300"><i class="fa-solid fa-wallet mr-2"></i>Coin Wallet</h3>
+        <h3 class="font-bold text-lg text-amber-300"><i class="fa-solid fa-wallet mr-2"></i>Coin Wallet ($1 = 50 Coins)</h3>
         <button onclick="closeModal('walletModal')" class="text-gray-400 hover:text-white">&times;</button>
       </div>
 
@@ -246,6 +274,7 @@
         <p class="text-xs text-gray-400">Username: <b id="displayUsername" class="text-amber-200"></b></p>
         <p class="text-xs text-gray-400 mt-1">Available Balance</p>
         <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">0 Coins</p>
+        <p id="modalUsdBalance" class="text-xs text-gray-300 mt-0.5">($0.00 USD)</p>
       </div>
 
       <!-- Tab Switcher for Deposit / Withdraw -->
@@ -277,11 +306,10 @@
     const SUPER_ADMIN_ID = "8238330395";
     let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || "{}");
 
-    // All Registered Users Database in localStorage keyed by username
+    // All Registered Users Database
     let registeredUsers = JSON.parse(localStorage.getItem("heartsync_registered_users") || "{}");
     let activeSessionUsername = localStorage.getItem("heartsync_active_session") || null;
 
-    // Check if user is logged in
     if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
       document.getElementById('authModal').classList.remove('hidden');
     } else {
@@ -319,7 +347,6 @@
         return;
       }
 
-      // Create new user profile with 100 coins signup bonus
       registeredUsers[username] = {
         firstName, lastName, username, phone, age, gender, password,
         coins: 100,
@@ -375,7 +402,10 @@
 
     function updateCoinDisplays(coins) {
       document.getElementById('userCoinsDisplay').innerText = coins;
+      let usd = (coins / 50).toFixed(2);
+      document.getElementById('userUsdDisplay').innerText = `$${usd}`;
       document.getElementById('modalCoinBalance').innerText = coins + " Coins";
+      document.getElementById('modalUsdBalance').innerText = `($${usd} USD)`;
     }
 
     // 24-Hour Daily Login Bonus (+5 Coins)
@@ -411,6 +441,7 @@
       profiles = [];
       for (let uname in registeredUsers) {
         let u = registeredUsers[uname];
+        if (uname === activeSessionUsername) continue; // Don't show self in swipe feed
         profiles.push({
           id: uname,
           name: u.firstName + " " + u.lastName,
@@ -487,17 +518,92 @@
       renderProfiles();
     }
 
-    function openChat() {
+    // DEDICATED CHAT PAGE & 5 COINS PER MESSAGE SYSTEM
+    let activeChatUser = null;
+
+    function openChatWithCurrentProfile() {
+      const gender = document.getElementById('genderFilter').value;
+      const maxAge = parseInt(document.getElementById('ageSlider').value);
+      const filtered = profiles.filter(p => (gender === "All" || p.gender === gender) && p.age <= maxAge && p.mode === selectedMode);
+      
+      if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
+        alert("No active profile to chat with right now!");
+        return;
+      }
+      
+      activeChatUser = filtered[currentProfileIndex];
+      
+      // Switch view to chat page
+      document.getElementById('mainAppSection').classList.add('hidden');
+      document.getElementById('filterSection').classList.add('hidden');
+      document.getElementById('chatPageSection').classList.remove('hidden');
+
+      document.getElementById('chatHeaderName').innerText = activeChatUser.name;
+      document.getElementById('chatHeaderImg').src = activeChatUser.photos[0];
+
+      // Load mock/saved chat history
+      let chatKey = `chat_${activeSessionUsername}_${activeChatUser.id}`;
+      let history = JSON.parse(localStorage.getItem(chatKey) || JSON.stringify([
+        { sender: 'them', text: `Hi there! I'm ${activeChatUser.name}. Let's talk!` }
+      ]));
+
+      renderChatHistory(history);
+    }
+
+    function renderChatHistory(history) {
+      let container = document.getElementById('chatMessagesContainer');
+      container.innerHTML = history.map(m => `
+        <div class="p-2.5 rounded-xl max-w-[80%] ${m.sender === 'me' ? 'bg-rose-600 self-end text-white' : 'bg-white/10 self-start text-rose-100'}">
+          ${m.text}
+        </div>`).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendChatMessage() {
+      let textInput = document.getElementById('chatInputText');
+      let text = textInput.value.trim();
+      if (!text || !activeChatUser) return;
+
       let user = registeredUsers[activeSessionUsername];
-      if (user.coins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
-      user.coins -= 10;
+      if (user.coins < 5) {
+        alert("You need at least 5 coins to send a message! Please deposit coins.");
+        openModal('walletModal');
+        return;
+      }
+
+      // Deduct 5 coins per message
+      user.coins -= 5;
       registeredUsers[activeSessionUsername] = user;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       updateCoinDisplays(user.coins);
-      alert("10 Coins deducted! Chat initialized.");
+
+      let chatKey = `chat_${activeSessionUsername}_${activeChatUser.id}`;
+      let history = JSON.parse(localStorage.getItem(chatKey) || "[]");
+      
+      history.push({ sender: 'me', text });
+      textInput.value = "";
+
+      // Simulate a quick reply
+      setTimeout(() => {
+        history.push({ sender: 'them', text: "That's awesome! Tell me more about yourself 😊" });
+        localStorage.setItem(chatKey, JSON.stringify(history));
+        renderChatHistory(history);
+      }, 1000);
+
+      localStorage.setItem(chatKey, JSON.stringify(history));
+      renderChatHistory(history);
     }
 
-    // MULTI-IMAGE FILE UPLOAD HANDLER (5 to 10 images)
+    function switchTab(tab) {
+      if (tab === 'feed') {
+        document.getElementById('chatPageSection').classList.add('hidden');
+        document.getElementById('adminSection').classList.add('hidden');
+        document.getElementById('mainAppSection').classList.remove('hidden');
+        document.getElementById('filterSection').classList.remove('hidden');
+      }
+    }
+
+    // MULTI-IMAGE FILE UPLOAD HANDLER (5 to 10 images) without freezing
     function handleImageFilesUpload(inputElement) {
       const files = inputElement.files;
       if (files.length < 1) return;
@@ -535,7 +641,7 @@
 
       if (tempUploadedPhotos.length > 0) {
         if (tempUploadedPhotos.length < 5) {
-          alert("Warning: You uploaded fewer than 5 images. Recommended is 5 to 10 photos!");
+          alert("Notice: Fewer than 5 photos selected, but profile will still be saved successfully.");
         }
         user.photos = tempUploadedPhotos;
       }
@@ -567,6 +673,7 @@
       document.getElementById('mainAppSection').style.display = show ? 'none' : 'block';
       document.getElementById('filterSection').style.display = show ? 'none' : 'block';
       document.getElementById('adminSection').style.display = show ? 'block' : 'none';
+      document.getElementById('chatPageSection').classList.add('hidden');
       if (show) setupAdminDashboard(userId);
     }
 
@@ -605,29 +712,29 @@
     }
 
     function renderAdminDashboardData() {
-      // Render Full Registered Users & Complete Profile Control for Admins
       let userListHtml = "";
       for (let uname in registeredUsers) {
         let u = registeredUsers[uname];
         let photoCount = u.photos ? u.photos.length : 0;
+        let firstPhoto = u.photos && u.photos[0] ? u.photos[0] : "";
         userListHtml += `
-          <div class="p-2.5 bg-white/5 rounded-lg space-y-1.5 border border-white/10">
-            <div class="flex justify-between items-center">
-              <p class="font-bold text-rose-300">@${u.username} (${u.firstName} ${u.lastName})</p>
-              <span class="text-amber-300 font-bold">${u.coins} Coins</span>
-            </div>
-            <p class="text-[10px] text-gray-300">Phone: ${u.phone} | Age: ${u.age} | Gender: ${u.gender} | Photos: ${photoCount}</p>
-            <p class="text-[10px] text-gray-400">Password: <code class="text-amber-200">${u.password}</code> | Profession: ${u.profession || 'N/A'}</p>
-            <div class="flex space-x-2 pt-1 flex-wrap gap-1">
-              <button onclick="adminEditUserCoins('${uname}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold">+50 Coins</button>
-              <button onclick="adminResetPassword('${uname}')" class="bg-blue-600 px-2 py-0.5 rounded text-[10px] font-bold">Reset Pwd</button>
-              <button onclick="adminDeleteUser('${uname}')" class="bg-rose-600 px-2 py-0.5 rounded text-[10px] font-bold">Delete Profile</button>
+          <div class="p-2.5 bg-white/5 rounded-lg space-y-1.5 border border-white/10 flex items-center space-x-3">
+            <img src="${firstPhoto}" class="w-12 h-12 rounded-lg object-cover border border-rose-500/40">
+            <div class="flex-1">
+              <div class="flex justify-between items-center">
+                <p class="font-bold text-rose-300">@${u.username} (${u.firstName})</p>
+                <span class="text-amber-300 font-bold">${u.coins} Coins</span>
+              </div>
+              <p class="text-[10px] text-gray-300">Phone: ${u.phone} | Age: ${u.age} | Photos: ${photoCount}</p>
+              <div class="flex space-x-2 pt-1">
+                <button onclick="adminEditUserCoins('${uname}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold">+50 Coins</button>
+                <button onclick="adminDeleteUser('${uname}')" class="bg-rose-600 px-2 py-0.5 rounded text-[10px] font-bold">Delete</button>
+              </div>
             </div>
           </div>`;
       }
       document.getElementById('adminUserList').innerHTML = userListHtml || '<p class="text-gray-400 text-center">No registered users yet.</p>';
 
-      // Render Admin Deposit Configuration list
       let depHtml = adminDepositMethods.map((m, idx) => `
         <div class="flex justify-between items-center bg-black/40 p-2 rounded">
           <div>
@@ -698,16 +805,6 @@
       if (username === activeSessionUsername) updateCoinDisplays(registeredUsers[activeSessionUsername].coins);
       renderAdminDashboardData();
       alert(`Added ${amt} coins to @${username}!`);
-    }
-
-    function adminResetPassword(username) {
-      let newPwd = prompt("Enter new password for @_" + username + ":");
-      if (newPwd) {
-        registeredUsers[username].password = newPwd;
-        localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-        alert("Password updated successfully!");
-        renderAdminDashboardData();
-      }
     }
 
     function adminDeleteUser(username) {
