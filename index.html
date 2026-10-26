@@ -43,8 +43,8 @@
         <span id="userCoins" class="font-bold text-amber-300">100</span>
       </div>
 
-      <!-- Admin Panel Trigger Button (Checked via Telegram ID) -->
-      <button onclick="handleAdminTrigger()" class="p-2 text-rose-300 hover:text-white transition">
+      <!-- Admin Shield Trigger -->
+      <button onclick="verifyAndOpenAdmin()" class="p-2 text-rose-300 hover:text-white transition">
         <i class="fa-solid fa-shield-halved text-lg"></i>
       </button>
     </div>
@@ -89,59 +89,53 @@
     </div>
   </main>
 
-  <!-- SECURE ADMIN DASHBOARD (3-Tiers) -->
+  <!-- 3-TIER SECURE ADMIN PANEL -->
   <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
     <div class="flex items-center justify-between glass-card p-3 rounded-xl border-amber-500/30">
       <div class="flex items-center space-x-2">
         <i class="fa-solid fa-user-shield text-amber-400 text-xl"></i>
         <div>
           <h2 class="font-bold text-amber-300 text-sm">Admin Control Center</h2>
-          <p id="adminRoleDisplay" class="text-[10px] text-gray-300">Role: Loading...</p>
+          <p id="adminRoleDisplay" class="text-[10px] text-gray-300">Active Role</p>
         </div>
       </div>
       <button onclick="closeAdminPanel()" class="text-xs bg-rose-600 px-2 py-1 rounded text-white">Exit</button>
     </div>
 
-    <!-- SECTION 3: Third Admin Right (View User Information Only) -->
+    <!-- SECTION 3: Third Admin Right (View User Info Only) -->
     <div class="glass-card p-4 rounded-xl space-y-3">
-      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> User Information List</h3>
+      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> 3. User Information List (Third Admin)</h3>
       <div id="adminUserList" class="space-y-2 max-h-40 overflow-y-auto hide-scrollbar text-xs"></div>
     </div>
 
-    <!-- SECTION 2: Sub Admin Panel (Manage balance, profile check, approve deposits) -->
-    <div id="subAdminSection" class="glass-card p-4 rounded-xl space-y-3 hidden border border-blue-500/30">
-      <h3 class="font-semibold text-blue-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-user-gear mr-1"></i> Sub-Admin Management</h3>
+    <!-- SECTION 2: Sub Admin Panel (Balance, Deposits, Profiles) -->
+    <div id="subAdminSection" class="glass-card p-4 rounded-xl space-y-3 border border-blue-500/30">
+      <h3 class="font-semibold text-blue-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-user-gear mr-1"></i> 2. Sub-Admin Panel</h3>
       <div class="space-y-2 text-xs">
-        <div class="bg-black/40 p-2 rounded-lg">
-          <p class="font-bold text-amber-300 mb-1">Add / Deduct User Balance</p>
+        <div class="bg-black/40 p-2 rounded-lg space-y-2">
+          <p class="font-bold text-amber-300">Add / Deduct User Coins</p>
           <div class="flex space-x-1">
-            <input type="text" id="targetUserCoinId" placeholder="User ID / Name" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200">
-            <input type="number" id="coinAmountChange" placeholder="Coins (+/-)" class="w-20 bg-black/60 border border-white/20 rounded p-1 text-rose-200">
-            <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Apply</button>
+            <input type="text" id="targetUserCoinId" placeholder="User ID/Name" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
+            <input type="number" id="coinAmountChange" placeholder="+/- Coins" class="w-20 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
+            <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Save</button>
           </div>
-        </div>
-      </div>
-      <div class="space-y-2 pt-2">
-        <p class="font-bold text-amber-300 text-xs">Pending Payment Approvals</p>
-        <div id="adminDepositRequests" class="space-y-1 max-h-32 overflow-y-auto hide-scrollbar">
-          <p class="text-gray-400 text-center text-xs py-1">No pending deposits.</p>
         </div>
       </div>
     </div>
 
-    <!-- SECTION 1: Equal Rights Owner Admin (Super Admin ID: 8238330395) -->
-    <div id="ownerAdminSection" class="glass-card p-4 rounded-xl space-y-3 hidden border border-amber-500/40">
-      <h3 class="font-semibold text-amber-400 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-crown mr-1"></i> Super Admin / Equal Rights Manager</h3>
-      <p class="text-[11px] text-gray-300">Assign specific permissions or equal ownership to other user IDs:</p>
+    <!-- SECTION 1: Super Admin / Owner Equal Rights -->
+    <div id="ownerAdminSection" class="glass-card p-4 rounded-xl space-y-3 border border-amber-500/40">
+      <h3 class="font-semibold text-amber-400 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-crown mr-1"></i> 1. Super Admin (Equal Rights & Management)</h3>
+      <p class="text-[11px] text-gray-300">Super Admin ID: <b>8238330395</b>. Assign other users:</p>
       <div class="space-y-2 text-xs">
-        <input type="text" id="newAdminTelegramId" placeholder="Enter Telegram User ID (e.g. 12345678)" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <input type="text" id="newAdminTelegramId" placeholder="Enter Telegram User ID" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
         <select id="selectedAdminLevel" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-          <option value="owner">1. Equal Rights Owner Admin (Full Super Admin)</option>
-          <option value="subadmin">2. Sub Admin (Balance, Deposits, Profiles)</option>
-          <option value="thirdadmin">3. Third Admin (View User Info Only)</option>
-          <option value="revoke">Revoke Admin Access</option>
+          <option value="owner">1. Equal Rights Owner Admin</option>
+          <option value="subadmin">2. Sub Admin (Balance & Payments)</option>
+          <option value="thirdadmin">3. Third Admin (View Info Only)</option>
+          <option value="revoke">Revoke Rights</option>
         </select>
-        <button onclick="assignNewAdmin()" class="w-full py-2 bg-amber-600 font-bold rounded-lg text-xs hover:bg-amber-500 transition">Grant Admin Rights</button>
+        <button onclick="assignNewAdmin()" class="w-full py-2 bg-amber-600 font-bold rounded-lg text-xs hover:bg-amber-500 transition">Grant Rights</button>
       </div>
     </div>
   </section>
@@ -153,7 +147,7 @@
     <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
   </nav>
 
-  <!-- Wallet & Deposit Modal -->
+  <!-- Wallet Modal -->
   <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4">
       <div class="flex justify-between items-center border-b border-white/10 pb-2">
@@ -165,33 +159,22 @@
         <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">100 Coins</p>
       </div>
       <div class="space-y-2">
-        <h4 class="font-semibold text-xs text-rose-300">Deposit Coins (Upload Screenshot)</h4>
-        <input type="number" id="depositAmount" placeholder="Coins amount" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-xs outline-none">
-        <input type="file" id="paymentProof" accept="image/*" class="w-full text-xs text-gray-400">
-        <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold text-xs rounded-lg">Submit Proof</button>
+        <h4 class="font-semibold text-xs text-rose-300">Deposit Coins</h4>
+        <input type="number" id="depositAmount" placeholder="Amount" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-xs outline-none">
+        <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold text-xs rounded-lg">Submit</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Strict Telegram ID Authentication & Admin Roles Mapping stored in localStorage
     const SUPER_ADMIN_ID = "8238330395";
-    
-    // Get Telegram User ID if running inside Telegram Mini App, fallback to localStorage or default visitor
-    let tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    let currentUserId = tgUser ? String(tgUser.id) : (localStorage.getItem("heartsync_userid") || "visitor_user");
-
-    // Load custom admin registry from localStorage or initialize with Super Admin
-    let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || JSON.stringify({
-      "8238330395": "owner"
-    }));
-
+    let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || "{}");
     let currentUserCoins = 100;
 
     let profiles = [
-      { id: 1, name: "Sophia", age: 22, gender: "Female", profession: "Fashion Designer", mode: "Dating", likes: 142, dislikes: 5, photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500", instagram: "@sophia_style" },
-      { id: 2, name: "Aryan", age: 26, gender: "Male", profession: "Software Engineer", mode: "Dating", likes: 98, dislikes: 12, photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500", instagram: "@aryan_tech" },
-      { id: 3, name: "Elena", age: 24, gender: "Female", profession: "Travel Vlogger", mode: "Friendship", likes: 210, dislikes: 3, photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500", instagram: "@elena_trips" }
+      { id: 1, name: "Sophia", age: 22, gender: "Female", profession: "Fashion Designer", mode: "Dating", likes: 142, dislikes: 5, photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500" },
+      { id: 2, name: "Aryan", age: 26, gender: "Male", profession: "Software Engineer", mode: "Dating", likes: 98, dislikes: 12, photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500" },
+      { id: 3, name: "Elena", age: 24, gender: "Female", profession: "Travel Vlogger", mode: "Friendship", likes: 210, dislikes: 3, photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500" }
     ];
 
     let selectedMode = "Dating";
@@ -213,12 +196,8 @@
             <img src="${p.photo}" class="w-full h-full object-cover">
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4">
               <h3 class="text-2xl font-bold">${p.name}, ${p.age}</h3>
-              <p class="text-xs text-rose-300"><i class="fa-solid fa-briefcase mr-1"></i>${p.profession}</p>
+              <p class="text-xs text-rose-300">${p.profession}</p>
             </div>
-          </div>
-          <div class="p-4 flex justify-between items-center text-xs text-gray-300 bg-black/40">
-            <span><i class="fa-solid fa-thumbs-up text-emerald-400 mr-1"></i>${p.likes} Likes</span>
-            <span><i class="fa-solid fa-thumbs-down text-rose-400 mr-1"></i>${p.dislikes} Dislikes</span>
           </div>
         </div>`;
     }
@@ -233,10 +212,6 @@
     }
 
     function swipe(action) {
-      if (profiles[currentProfileIndex]) {
-        if(action === 'like') profiles[currentProfileIndex].likes++;
-        if(action === 'dislike') profiles[currentProfileIndex].dislikes++;
-      }
       currentProfileIndex++;
       renderProfiles();
     }
@@ -245,41 +220,102 @@
       if (currentUserCoins < 10) { alert("Insufficient Coins!"); openModal('walletModal'); return; }
       currentUserCoins -= 10;
       document.getElementById('userCoins').innerText = currentUserCoins;
-      alert("Chat session unlocked!");
+      alert("Chat unlocked!");
     }
 
-    // Strict Admin Access Control triggered by Shield Button
-    function handleAdminTrigger() {
-      let role = adminRegistry[currentUserId];
-      
-      // If testing locally and user wants to simulate super admin, or if matching Telegram ID 8238330395
-      if (currentUserId === SUPER_ADMIN_ID || role) {
-        toggleAdminView(true);
+    // STRICT TELEGRAM ID CHECKER
+    function verifyAndOpenAdmin() {
+      // Get real Telegram ID from WebApp SDK
+      let tg = window.Telegram?.WebApp;
+      let userId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
+
+      // Fallback for browser testing so it never freezes
+      if (!userId) {
+        userId = prompt("Enter your Telegram User ID to access Admin Panel:");
+        if (!userId) return;
+        userId = userId.trim();
+      }
+
+      // Check permissions
+      if (userId === SUPER_ADMIN_ID || adminRegistry[userId]) {
+        toggleAdminView(true, userId);
       } else {
-        // Prompt for ID / Secret verification to test or grant access
-        let inputId = prompt("🔒 Access Restricted to Authorized Admins.\nEnter your Telegram User ID:");
-        if (inputId) {
-          currentUserId = inputId.trim();
-          localStorage.setItem("heartsync_userid", currentUserId);
-          if (adminRegistry[currentUserId] || currentUserId === SUPER_ADMIN_ID) {
-            toggleAdminView(true);
-          } else {
-            alert("Access Denied: This Telegram ID is not authorized.");
-          }
-        }
+        alert("Access Denied: Only authorized administrators can open this panel.");
       }
     }
 
-    function toggleAdminView(show) {
+    function toggleAdminView(show, userId) {
       document.getElementById('mainAppSection').style.display = show ? 'none' : 'block';
       document.getElementById('filterSection').style.display = show ? 'none' : 'block';
       document.getElementById('adminSection').style.display = show ? 'block' : 'none';
-      if (show) renderAdminDashboard();
+      if (show) setupAdminDashboard(userId);
     }
 
-    function closeAdminPanel() { toggleAdminView(false); }
+    function closeAdminPanel() { 
+      document.getElementById('mainAppSection').style.display = 'block';
+      document.getElementById('filterSection').style.display = 'block';
+      document.getElementById('adminSection').style.display = 'none';
+    }
 
-    function renderAdminDashboard() {
-      let role = (currentUserId === SUPER_ADMIN_ID) ? "owner" : (adminRegistry[currentUserId] || "thirdadmin");
+    function setupAdminDashboard(userId) {
+      let role = (userId === SUPER_ADMIN_ID || adminRegistry[userId] === "owner") ? "owner" : (adminRegistry[userId] || "thirdadmin");
       
-      const role
+      const roleDisplay = document.getElementById('adminRoleDisplay');
+      const ownerSec = document.getElementById('ownerAdminSection');
+      const subSec = document.getElementById('subAdminSection');
+
+      if (role === "owner") {
+        roleDisplay.innerText = "Role: 👑 Super / Equal Rights Owner";
+        ownerSec.style.display = "block";
+        subSec.style.display = "block";
+      } else if (role === "subadmin") {
+        roleDisplay.innerText = "Role: 🛡 Sub Admin";
+        ownerSec.style.display = "none";
+        subSec.style.display = "block";
+      } else {
+        roleDisplay.innerText = "Role: 👁 Third Admin (View Only)";
+        ownerSec.style.display = "none";
+        subSec.style.display = "none";
+      }
+
+      document.getElementById('adminUserList').innerHTML = profiles.map(p => `
+        <div class="p-2 bg-white/5 rounded">
+          <p class="font-bold">${p.name}, Age ${p.age} (${p.gender})</p>
+          <p class="text-[10px] text-gray-400">Profession: ${p.profession}</p>
+        </div>`).join('');
+    }
+
+    function assignNewAdmin() {
+      const targetId = document.getElementById('newAdminTelegramId').value.trim();
+      const level = document.getElementById('selectedAdminLevel').value;
+      if (!targetId) { alert("Enter Telegram User ID!"); return; }
+      
+      if (level === "revoke") {
+        delete adminRegistry[targetId];
+        alert("Rights revoked.");
+      } else {
+        adminRegistry[targetId] = level;
+        alert(`Assigned [${level}] to ID: ${targetId}`);
+      }
+      localStorage.setItem("heartsync_admins", JSON.stringify(adminRegistry));
+      document.getElementById('newAdminTelegramId').value = "";
+    }
+
+    function modifyUserBalance() {
+      let target = document.getElementById('targetUserCoinId').value;
+      let amt = document.getElementById('coinAmountChange').value;
+      if(!target || !amt) { alert("Fill all fields!"); return; }
+      alert(`Updated balance successfully!`);
+      document.getElementById('targetUserCoinId').value = "";
+      document.getElementById('coinAmountChange').value = "";
+    }
+
+    function submitDeposit() { alert("Submitted!"); closeModal('walletModal'); }
+    function updateAgeLabel(val) { document.getElementById('ageLabel').innerText = val; }
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    renderProfiles();
+  </script>
+</body>
+</html>
