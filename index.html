@@ -30,7 +30,7 @@
 <body class="pb-28">
 
   <!-- SIGN UP / LOGIN MODAL -->
-  <div id="authModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+  <div id="authModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="glass-card p-6 rounded-3xl max-w-sm w-full space-y-4 border-rose-500/40 max-h-[90vh] overflow-y-auto">
       <div class="text-center space-y-1">
         <i class="fa-solid fa-heart text-rose-500 text-3xl heart-glow"></i>
@@ -55,7 +55,7 @@
           </select>
         </div>
         <input type="password" id="regPassword" placeholder="Set Password" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        <button onclick="submitRegistration()" class="w-full py-2.5 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white shadow-lg">Complete Sign Up (+100 Coins)</button>
+        <button type="button" onclick="submitRegistration()" class="w-full py-2.5 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white shadow-lg cursor-pointer">Complete Sign Up (+100 Coins)</button>
         <p class="text-center text-[10px] text-gray-400 pt-1">Already registered? <span onclick="toggleAuthMode('login')" class="text-amber-300 underline cursor-pointer">Login here</span></p>
       </div>
 
@@ -63,7 +63,7 @@
       <div id="loginFormFields" class="space-y-3 text-xs hidden">
         <input type="text" id="logUsername" placeholder="Username" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
         <input type="password" id="logPassword" placeholder="Password" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
-        <button onclick="submitLogin()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white shadow-lg">Login to Account</button>
+        <button type="button" onclick="submitLogin()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white shadow-lg cursor-pointer">Login to Account</button>
         <p class="text-center text-[10px] text-gray-400 pt-1">New user? <span onclick="toggleAuthMode('signup')" class="text-rose-300 underline cursor-pointer">Sign up</span></p>
       </div>
     </div>
@@ -86,12 +86,12 @@
       </div>
 
       <!-- Logout Button -->
-      <button onclick="logoutUser()" title="Logout" class="p-2 text-rose-400 hover:text-white transition">
+      <button onclick="logoutUser()" title="Logout" class="p-2 text-rose-400 hover:text-white transition cursor-pointer">
         <i class="fa-solid fa-right-from-bracket text-lg"></i>
       </button>
 
       <!-- Admin Shield Trigger -->
-      <button onclick="verifyAndOpenAdmin()" class="p-2 text-rose-300 hover:text-white transition">
+      <button onclick="verifyAndOpenAdmin()" class="p-2 text-rose-300 hover:text-white transition cursor-pointer">
         <i class="fa-solid fa-shield-halved text-lg"></i>
       </button>
     </div>
@@ -126,13 +126,13 @@
 
     <!-- Swipe & Chat Action Bar -->
     <div class="flex items-center justify-around mt-4 max-w-xs mx-auto">
-      <button onclick="swipe('dislike')" class="w-14 h-14 rounded-full glass-card border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg">
+      <button onclick="swipe('dislike')" class="w-14 h-14 rounded-full glass-card border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg cursor-pointer">
         <i class="fa-solid fa-xmark"></i>
       </button>
-      <button onclick="openChatWithCurrentProfile()" class="w-16 h-16 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white flex items-center justify-center text-2xl shadow-xl hover:scale-105 transition">
+      <button onclick="openChatWithCurrentProfile()" class="w-16 h-16 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white flex items-center justify-center text-2xl shadow-xl hover:scale-105 transition cursor-pointer">
         <i class="fa-solid fa-comments"></i>
       </button>
-      <button onclick="swipe('like')" class="w-14 h-14 rounded-full glass-card border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg">
+      <button onclick="swipe('like')" class="w-14 h-14 rounded-full glass-card border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg cursor-pointer">
         <i class="fa-solid fa-heart"></i>
       </button>
     </div>
@@ -159,11 +159,11 @@
     <!-- Chat Input Box -->
     <div class="flex space-x-2">
       <input type="text" id="chatInputText" placeholder="Type message (Costs 5 coins)..." class="flex-1 bg-black/60 border border-white/20 rounded-xl p-2.5 text-xs text-rose-200 outline-none">
-      <button onclick="sendChatMessage()" class="bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
+      <button onclick="sendChatMessage()" class="bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
   </section>
 
-  <!-- SECURE ADMIN DASHBOARD (3-Tiers + Full Profile Control) -->
+  <!-- SECURE ADMIN DASHBOARD -->
   <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
     <div class="flex items-center justify-between glass-card p-3 rounded-xl border-amber-500/30">
       <div class="flex items-center space-x-2">
@@ -173,7 +173,7 @@
           <p id="adminRoleDisplay" class="text-[10px] text-gray-300">Active Role</p>
         </div>
       </div>
-      <button onclick="closeAdminPanel()" class="text-xs bg-rose-600 px-2 py-1 rounded text-white">Exit</button>
+      <button onclick="closeAdminPanel()" class="text-xs bg-rose-600 px-2 py-1 rounded text-white cursor-pointer">Exit</button>
     </div>
 
     <!-- ADMIN CONFIG: Add Deposit Methods -->
@@ -182,67 +182,46 @@
       <div class="space-y-2 text-xs">
         <input type="text" id="adminDepName" placeholder="Method Name (e.g. eSewa / USDT)" class="w-full bg-black/60 border border-white/20 rounded p-1.5 text-rose-200 outline-none">
         <input type="text" id="adminDepDetails" placeholder="Account Details / Address" class="w-full bg-black/60 border border-white/20 rounded p-1.5 text-rose-200 outline-none">
-        <button onclick="saveAdminDepositMethod()" class="w-full py-1.5 bg-amber-600 font-bold rounded text-xs hover:bg-amber-500 transition">Add Deposit Option</button>
+        <button onclick="saveAdminDepositMethod()" class="w-full py-1.5 bg-amber-600 font-bold rounded text-xs hover:bg-amber-500 transition cursor-pointer">Add Deposit Option</button>
         <div id="adminDepMethodsList" class="space-y-1 max-h-32 overflow-y-auto hide-scrollbar pt-1"></div>
       </div>
     </div>
 
-    <!-- SECTION 3: Third Admin & Full User Profile Control -->
+    <!-- Registered Users & Control -->
     <div class="glass-card p-4 rounded-xl space-y-3">
-      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> 3. Registered Users & Full Profile Control</h3>
+      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> Registered Users & Full Profile Control</h3>
       <div id="adminUserList" class="space-y-2 max-h-56 overflow-y-auto hide-scrollbar text-xs"></div>
-    </div>
-
-    <!-- SECTION 2: Sub Admin Panel (Balance & Payments) -->
-    <div id="subAdminSection" class="glass-card p-4 rounded-xl space-y-3 border border-blue-500/30">
-      <h3 class="font-semibold text-blue-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-user-gear mr-1"></i> 2. Sub-Admin Panel (Manage Balance)</h3>
-      <div class="space-y-2 text-xs">
-        <div class="bg-black/40 p-2 rounded-lg space-y-2">
-          <p class="font-bold text-amber-300">Add / Deduct User Coins</p>
-          <div class="flex space-x-1">
-            <input type="text" id="targetUserCoinId" placeholder="Username" class="flex-1 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
-            <input type="number" id="coinAmountChange" placeholder="+/- Coins" class="w-20 bg-black/60 border border-white/20 rounded p-1 text-rose-200 outline-none">
-            <button onclick="modifyUserBalance()" class="bg-blue-600 px-3 py-1 rounded font-bold">Apply</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SECTION 1: Super Admin / Owner Equal Rights -->
-    <div id="ownerAdminSection" class="glass-card p-4 rounded-xl space-y-3 border border-amber-500/40">
-      <h3 class="font-semibold text-amber-400 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-crown mr-1"></i> 1. Super Admin (Equal Rights & Management)</h3>
-      <p class="text-[11px] text-gray-300">Super Admin ID: <b>8238330395</b>. Assign other users:</p>
-      <div class="space-y-2 text-xs">
-        <input type="text" id="newAdminTelegramId" placeholder="Enter Telegram User ID" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        <select id="selectedAdminLevel" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-          <option value="owner">1. Equal Rights Owner Admin</option>
-          <option value="subadmin">2. Sub Admin (Balance & Payments)</option>
-          <option value="thirdadmin">3. Third Admin (View Info Only)</option>
-          <option value="revoke">Revoke Rights</option>
-        </select>
-        <button onclick="assignNewAdmin()" class="w-full py-2 bg-amber-600 font-bold rounded-lg text-xs hover:bg-amber-500 transition">Grant Rights</button>
-      </div>
     </div>
   </section>
 
   <!-- Bottom Nav -->
   <nav class="fixed bottom-0 left-0 right-0 glass-card border-t border-rose-500/20 py-3 px-6 flex justify-around z-40 max-w-md mx-auto">
-    <button onclick="switchTab('feed')" id="nav-feed" class="text-rose-400 flex flex-col items-center"><i class="fa-solid fa-fire text-lg"></i><span class="text-[10px] mt-1">Discover</span></button>
-    <button onclick="claimDailyBonus()" class="text-amber-400 hover:text-amber-300 flex flex-col items-center"><i class="fa-solid fa-gift text-lg"></i><span class="text-[10px] mt-1">Daily +5</span></button>
-    <button onclick="openModal('createProfileModal')" class="text-gray-400 hover:text-rose-400 flex flex-col items-center"><i class="fa-solid fa-user-pen text-lg"></i><span class="text-[10px] mt-1">My Profile</span></button>
-    <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
+    <button onclick="switchTab('feed')" id="nav-feed" class="text-rose-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-fire text-lg"></i><span class="text-[10px] mt-1">Discover</span></button>
+    <button onclick="claimDailyBonus()" class="text-amber-400 hover:text-amber-300 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-gift text-lg"></i><span class="text-[10px] mt-1">Daily +5</span></button>
+    <button onclick="openProfileModal()" class="text-gray-400 hover:text-rose-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-user-pen text-lg"></i><span class="text-[10px] mt-1">My Profile</span></button>
+    <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
   </nav>
 
-  <!-- Profile Creation Modal with Non-Blocking File Uploads -->
+  <!-- Profile Creation Modal -->
   <div id="createProfileModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-3 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-white/10 pb-2">
         <h3 class="font-bold text-lg text-rose-300"><i class="fa-solid fa-user-pen mr-2"></i>My Profile & Photos (1-10 Pics)</h3>
-        <button onclick="closeModal('createProfileModal')" class="text-gray-400 hover:text-white">&times;</button>
+        <button onclick="closeModal('createProfileModal')" class="text-gray-400 hover:text-white cursor-pointer">&times;</button>
       </div>
       <div class="space-y-2.5 text-xs">
         <input type="text" id="profProfession" placeholder="Profession / Bio" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
         <input type="text" id="profInstagram" placeholder="Instagram Handle" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        
+        <div class="space-y-1">
+          <label class="block text-gray-300">Gender Selection:</label>
+          <select id="profGenderSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
         <select id="profModeSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
           <option value="Dating">Dating</option>
           <option value="Friendship">Friendship</option>
@@ -257,17 +236,17 @@
 
         <div id="imagePreviewContainer" class="grid grid-cols-5 gap-1 max-h-24 overflow-y-auto"></div>
 
-        <button onclick="saveUserProfilePhotos()" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white">Save Profile & Photos</button>
+        <button type="button" onclick="saveUserProfilePhotos()" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white cursor-pointer">Save Profile & Photos</button>
       </div>
     </div>
   </div>
 
-  <!-- Wallet Modal with Deposit & Withdraw Tabs -->
+  <!-- Wallet Modal -->
   <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-white/10 pb-2">
         <h3 class="font-bold text-lg text-amber-300"><i class="fa-solid fa-wallet mr-2"></i>Coin Wallet ($1 = 50 Coins)</h3>
-        <button onclick="closeModal('walletModal')" class="text-gray-400 hover:text-white">&times;</button>
+        <button onclick="closeModal('walletModal')" class="text-gray-400 hover:text-white cursor-pointer">&times;</button>
       </div>
 
       <div class="bg-rose-950/40 p-3 rounded-xl border border-rose-500/20 text-center">
@@ -277,27 +256,24 @@
         <p id="modalUsdBalance" class="text-xs text-gray-300 mt-0.5">($0.00 USD)</p>
       </div>
 
-      <!-- Tab Switcher for Deposit / Withdraw -->
       <div class="flex rounded-lg bg-black/40 p-1 text-xs">
-        <button onclick="switchWalletTab('deposit')" id="wtab-deposit" class="flex-1 py-1.5 rounded font-semibold bg-amber-600 text-white transition">Deposit Funds</button>
-        <button onclick="switchWalletTab('withdraw')" id="wtab-withdraw" class="flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition">Withdraw Funds</button>
+        <button onclick="switchWalletTab('deposit')" id="wtab-deposit" class="flex-1 py-1.5 rounded font-semibold bg-amber-600 text-white transition cursor-pointer">Deposit Funds</button>
+        <button onclick="switchWalletTab('withdraw')" id="wtab-withdraw" class="flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition cursor-pointer">Withdraw Funds</button>
       </div>
 
-      <!-- Deposit Section -->
       <div id="walletDepositSection" class="space-y-3 text-xs">
         <p class="font-semibold text-amber-300">Select Admin Deposit Method:</p>
         <div id="userDepositMethodsList" class="space-y-2 max-h-36 overflow-y-auto hide-scrollbar"></div>
         <input type="number" id="depositAmount" placeholder="Amount to Deposit" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200">
         <input type="file" id="paymentProof" accept="image/*" class="w-full text-gray-400">
-        <button onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white">Submit Deposit Proof</button>
+        <button type="button" onclick="submitDeposit()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white cursor-pointer">Submit Deposit Proof</button>
       </div>
 
-      <!-- Withdraw Section -->
       <div id="walletWithdrawSection" class="space-y-3 text-xs hidden">
         <p class="font-semibold text-rose-300">Request Withdrawal Details:</p>
         <input type="number" id="withdrawAmount" placeholder="Coins to Withdraw" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200">
         <textarea id="withdrawDetails" placeholder="Enter bank account / eSewa / Crypto address..." class="w-full bg-black/50 border border-white/20 rounded-lg p-2 outline-none text-rose-200 h-20 resize-none"></textarea>
-        <button onclick="submitWithdrawal()" class="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-600 font-bold rounded-lg text-white">Submit Withdrawal Request</button>
+        <button type="button" onclick="submitWithdrawal()" class="w-full py-2 bg-gradient-to-r from-rose-600 to-pink-600 font-bold rounded-lg text-white cursor-pointer">Submit Withdrawal Request</button>
       </div>
     </div>
   </div>
@@ -305,14 +281,14 @@
   <script>
     const SUPER_ADMIN_ID = "8238330395";
     let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || "{}");
-
-    // All Registered Users Database
     let registeredUsers = JSON.parse(localStorage.getItem("heartsync_registered_users") || "{}");
     let activeSessionUsername = localStorage.getItem("heartsync_active_session") || null;
 
+    // Check session on startup
     if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
       document.getElementById('authModal').classList.remove('hidden');
     } else {
+      document.getElementById('authModal').classList.add('hidden');
       initUserSession(activeSessionUsername);
     }
 
@@ -360,6 +336,7 @@
 
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       localStorage.setItem("heartsync_active_session", username);
+      activeSessionUsername = username;
       
       alert("Registration successful! You received 100 Coins Signup Bonus 🎉");
       document.getElementById('authModal').classList.add('hidden');
@@ -383,6 +360,7 @@
       }
 
       localStorage.setItem("heartsync_active_session", username);
+      activeSessionUsername = username;
       document.getElementById('authModal').classList.add('hidden');
       initUserSession(username);
       syncProfilesList();
@@ -390,11 +368,13 @@
 
     function logoutUser() {
       localStorage.removeItem("heartsync_active_session");
+      activeSessionUsername = null;
       location.reload();
     }
 
     function initUserSession(username) {
       let user = registeredUsers[username];
+      if (!user) return;
       document.getElementById('displayUsername').innerText = "@" + username + ` (${user.firstName})`;
       updateCoinDisplays(user.coins);
       syncProfilesList();
@@ -408,7 +388,6 @@
       document.getElementById('modalUsdBalance').innerText = `($${usd} USD)`;
     }
 
-    // 24-Hour Daily Login Bonus (+5 Coins)
     function claimDailyBonus() {
       if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) return;
       let user = registeredUsers[activeSessionUsername];
@@ -441,7 +420,7 @@
       profiles = [];
       for (let uname in registeredUsers) {
         let u = registeredUsers[uname];
-        if (uname === activeSessionUsername) continue; // Don't show self in swipe feed
+        if (uname === activeSessionUsername) continue; // Skip self in discover feed
         profiles.push({
           id: uname,
           name: u.firstName + " " + u.lastName,
@@ -450,8 +429,6 @@
           gender: u.gender,
           profession: u.profession || "Member",
           mode: u.mode || "Dating",
-          likes: u.likes || 12,
-          dislikes: u.dislikes || 2,
           photos: u.photos && u.photos.length > 0 ? u.photos : ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500"],
           currentPhotoIdx: 0,
           instagram: u.instagram || ("@" + u.username)
@@ -468,7 +445,9 @@
       const maxAge = parseInt(document.getElementById('ageSlider').value);
       const filtered = profiles.filter(p => (gender === "All" || p.gender === gender) && p.age <= maxAge && p.mode === selectedMode);
       const stack = document.getElementById('cardStack');
+      
       if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
+        currentProfileIndex = 0;
         stack.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center text-gray-400">No more profiles found in this category!</div>`;
         return;
       }
@@ -483,11 +462,11 @@
               <div class="absolute top-2 left-2 right-2 flex space-x-1 z-10">
                 ${p.photos.map((_, idx) => `<div class="h-1 flex-1 rounded-full ${idx === (p.currentPhotoIdx || 0) ? 'bg-rose-500' : 'bg-white/40'}"></div>`).join('')}
               </div>
-              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', -1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', 1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', -1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20 cursor-pointer"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', 1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20 cursor-pointer"><i class="fa-solid fa-chevron-right text-xs"></i></button>
             ` : ''}
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4 pointer-events-none">
-              <h3 class="text-2xl font-bold">${p.name}, ${p.age}</h3>
+              <h3 class="text-2xl font-bold">${p.name}, ${p.age} (${p.gender})</h3>
               <p class="text-xs text-rose-300"><i class="fa-solid fa-briefcase mr-1"></i>${p.profession} (@${p.username})</p>
               <p class="text-xs text-amber-300 mt-1 font-bold"><i class="fa-solid fa-comments mr-1"></i>Tap card or chat icon to message (Costs 5 coins)</p>
             </div>
@@ -508,7 +487,7 @@
     function setMode(mode) {
       selectedMode = mode;
       ['Dating', 'Friendship', 'Blind Date'].forEach(m => {
-        document.getElementById(`mode-${m}`).className = (m === mode) ? "flex-1 py-2 rounded-lg font-semibold bg-rose-600 text-white transition" : "flex-1 py-2 rounded-lg font-semibold text-gray-400 hover:text-white transition";
+        document.getElementById(`mode-${m}`).className = (m === mode) ? "flex-1 py-2 rounded-lg font-semibold bg-rose-600 text-white transition cursor-pointer" : "flex-1 py-2 rounded-lg font-semibold text-gray-400 hover:text-white transition cursor-pointer";
       });
       currentProfileIndex = 0;
       renderProfiles();
@@ -519,7 +498,6 @@
       renderProfiles();
     }
 
-    // DEDICATED CHAT PAGE & 5 COINS PER MESSAGE SYSTEM (Auto-Charged on Entry)
     let activeChatUser = null;
 
     function openChatWithCurrentProfile() {
@@ -533,7 +511,6 @@
       }
       
       activeChatUser = filtered[currentProfileIndex];
-
       let currentUser = registeredUsers[activeSessionUsername];
       if (currentUser.coins < 5) {
         alert("You need at least 5 coins to open a chat session! Please deposit coins.");
@@ -541,13 +518,11 @@
         return;
       }
 
-      // Auto-charge 5 coins when entering chat
       currentUser.coins -= 5;
       registeredUsers[activeSessionUsername] = currentUser;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       updateCoinDisplays(currentUser.coins);
       
-      // Switch view to chat page
       document.getElementById('mainAppSection').classList.add('hidden');
       document.getElementById('filterSection').classList.add('hidden');
       document.getElementById('chatPageSection').classList.remove('hidden');
@@ -555,7 +530,6 @@
       document.getElementById('chatHeaderName').innerText = activeChatUser.name;
       document.getElementById('chatHeaderImg').src = activeChatUser.photos[0];
 
-      // Load chat history
       let chatKey = `chat_${activeSessionUsername}_${activeChatUser.id}`;
       let history = JSON.parse(localStorage.getItem(chatKey) || JSON.stringify([
         { sender: 'them', text: `Hi there! I'm ${activeChatUser.name}. Thanks for reaching out 💕 (5 coins charged)` }
@@ -585,7 +559,6 @@
         return;
       }
 
-      // Deduct 5 coins per message
       user.coins -= 5;
       registeredUsers[activeSessionUsername] = user;
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
@@ -616,7 +589,26 @@
       }
     }
 
-    // NON-BLOCKING BASE64 IMAGE FILE UPLOAD HANDLER
+    function openProfileModal() {
+      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
+        alert("Session error! Please log in again.");
+        document.getElementById('authModal').classList.remove('hidden');
+        return;
+      }
+      let u = registeredUsers[activeSessionUsername];
+      document.getElementById('profProfession').value = u.profession || "";
+      document.getElementById('profInstagram').value = u.instagram || "";
+      document.getElementById('profGenderSelect').value = u.gender || "Female";
+      document.getElementById('profModeSelect').value = u.mode || "Dating";
+      
+      tempUploadedPhotos = u.photos ? [...u.photos] : [];
+      const container = document.getElementById('imagePreviewContainer');
+      container.innerHTML = tempUploadedPhotos.map(p => `<img src="${p}" class="w-12 h-12 object-cover rounded border border-rose-500/40">`).join('');
+      document.getElementById('imageCountStatus').innerText = `${tempUploadedPhotos.length} image(s) loaded`;
+
+      openModal('createProfileModal');
+    }
+
     function handleImageFilesUpload(inputElement) {
       const files = inputElement.files;
       if (files.length < 1) return;
@@ -643,15 +635,22 @@
     }
 
     function saveUserProfilePhotos() {
-      let user = registeredUsers[activeSessionUsername];
-      if (!user) { alert("Session error! Please login again."); return; }
+      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
+        alert("Session error! Please login again.");
+        document.getElementById('authModal').classList.remove('hidden');
+        closeModal('createProfileModal');
+        return;
+      }
 
+      let user = registeredUsers[activeSessionUsername];
       const profession = document.getElementById('profProfession').value.trim();
       const instagram = document.getElementById('profInstagram').value.trim();
+      const gender = document.getElementById('profGenderSelect').value;
       const mode = document.getElementById('profModeSelect').value;
 
       if (profession) user.profession = profession;
       if (instagram) user.instagram = instagram;
+      user.gender = gender;
       user.mode = mode;
 
       if (tempUploadedPhotos.length > 0) {
@@ -665,7 +664,6 @@
       syncProfilesList();
     }
 
-    // STRICT TELEGRAM ID ADMIN VERIFICATION
     function verifyAndOpenAdmin() {
       let tg = window.Telegram?.WebApp;
       let userId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
@@ -696,30 +694,6 @@
     }
 
     function setupAdminDashboard(userId) {
-      let role = (userId === SUPER_ADMIN_ID || adminRegistry[userId] === "owner") ? "owner" : (adminRegistry[userId] || "thirdadmin");
-      
-      const roleDisplay = document.getElementById('adminRoleDisplay');
-      const ownerSec = document.getElementById('ownerAdminSection');
-      const subSec = document.getElementById('subAdminSection');
-      const depConfigSec = document.getElementById('depositConfigSection');
-
-      if (role === "owner") {
-        roleDisplay.innerText = "Role: 👑 Super / Equal Rights Owner";
-        ownerSec.style.display = "block";
-        subSec.style.display = "block";
-        depConfigSec.style.display = "block";
-      } else if (role === "subadmin") {
-        roleDisplay.innerText = "Role: 🛡 Sub Admin";
-        ownerSec.style.display = "none";
-        subSec.style.display = "block";
-        depConfigSec.style.display = "block";
-      } else {
-        roleDisplay.innerText = "Role: 👁 Third Admin (View Only)";
-        ownerSec.style.display = "none";
-        subSec.style.display = "none";
-        depConfigSec.style.display = "none";
-      }
-
       renderAdminDashboardData();
     }
 
@@ -737,10 +711,10 @@
                 <p class="font-bold text-rose-300">@${u.username} (${u.firstName})</p>
                 <span class="text-amber-300 font-bold">${u.coins} Coins</span>
               </div>
-              <p class="text-[10px] text-gray-300">Phone: ${u.phone} | Age: ${u.age} | Photos: ${photoCount}</p>
+              <p class="text-[10px] text-gray-300">Gender: ${u.gender} | Phone: ${u.phone} | Age: ${u.age}</p>
               <div class="flex space-x-2 pt-1">
-                <button onclick="adminEditUserCoins('${uname}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold">+50 Coins</button>
-                <button onclick="adminDeleteUser('${uname}')" class="bg-rose-600 px-2 py-0.5 rounded text-[10px] font-bold">Delete</button>
+                <button onclick="adminEditUserCoins('${uname}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">+50 Coins</button>
+                <button onclick="adminDeleteUser('${uname}')" class="bg-rose-600 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">Delete</button>
               </div>
             </div>
           </div>`;
@@ -753,15 +727,14 @@
             <p class="font-bold text-amber-300">${m.name}</p>
             <p class="text-[10px] text-gray-300">${m.details}</p>
           </div>
-          <button onclick="deleteAdminDeposit(${idx})" class="text-rose-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash"></i></button>
+          <button onclick="deleteAdminDeposit(${idx})" class="text-rose-400 hover:text-rose-600 text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
         </div>`).join('');
       document.getElementById('adminDepMethodsList').innerHTML = depHtml || '<p class="text-gray-400 text-center">No deposit options added.</p>';
-      
       renderUserDepositMethods();
     }
 
     function saveAdminDepositMethod() {
-      if (adminDepositMethods.length >= 10) { alert("Maximum limit of 10 deposit options reached!"); return; }
+      if (adminDepositMethods.length >= 10) { alert("Maximum limit reached!"); return; }
       let name = document.getElementById('adminDepName').value.trim();
       let details = document.getElementById('adminDepDetails').value.trim();
       if (!name || !details) { alert("Enter method name and details!"); return; }
@@ -770,7 +743,6 @@
       document.getElementById('adminDepName').value = "";
       document.getElementById('adminDepDetails').value = "";
       renderAdminDashboardData();
-      alert("Deposit method added successfully!");
     }
 
     function deleteAdminDeposit(idx) {
@@ -788,27 +760,7 @@
             <p class="text-[10px] text-gray-300">${m.details}</p>
           </div>
         </label>`).join('');
-      document.getElementById('userDepositMethodsList').innerHTML = html || '<p class="text-gray-400 text-center">No deposit options available.</p>';
-    }
-
-    function modifyUserBalance() {
-      let targetUsername = document.getElementById('targetUserCoinId').value.trim().toLowerCase();
-      let amt = parseInt(document.getElementById('coinAmountChange').value);
-      if (!targetUsername || isNaN(amt)) { alert("Enter valid username and amount!"); return; }
-
-      if (!registeredUsers[targetUsername]) { alert("User with this username not found!"); return; }
-
-      registeredUsers[targetUsername].coins += amt;
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-
-      if (targetUsername === activeSessionUsername) {
-        updateCoinDisplays(registeredUsers[activeSessionUsername].coins);
-      }
-
-      alert(`Success! User @${targetUsername} balance updated by ${amt}.`);
-      document.getElementById('targetUserCoinId').value = "";
-      document.getElementById('coinAmountChange').value = "";
-      renderAdminDashboardData();
+      document.getElementById('userDepositMethodsList').innerHTML = html || '<p class="text-gray-400 text-center">No deposit options.</p>';
     }
 
     function adminEditUserCoins(username, amt) {
@@ -816,7 +768,6 @@
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       if (username === activeSessionUsername) updateCoinDisplays(registeredUsers[activeSessionUsername].coins);
       renderAdminDashboardData();
-      alert(`Added ${amt} coins to @${username}!`);
     }
 
     function adminDeleteUser(username) {
@@ -827,31 +778,15 @@
       }
     }
 
-    function assignNewAdmin() {
-      const targetId = document.getElementById('newAdminTelegramId').value.trim();
-      const level = document.getElementById('selectedAdminLevel').value;
-      if (!targetId) { alert("Enter Telegram User ID!"); return; }
-      
-      if (level === "revoke") {
-        delete adminRegistry[targetId];
-        alert("Admin rights revoked.");
-      } else {
-        adminRegistry[targetId] = level;
-        alert(`Assigned role [${level}] to ID: ${targetId}`);
-      }
-      localStorage.setItem("heartsync_admins", JSON.stringify(adminRegistry));
-      document.getElementById('newAdminTelegramId').value = "";
-    }
-
     function switchWalletTab(tab) {
       if (tab === 'deposit') {
-        document.getElementById('wtab-deposit').className = "flex-1 py-1.5 rounded font-semibold bg-amber-600 text-white transition";
-        document.getElementById('wtab-withdraw').className = "flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition";
+        document.getElementById('wtab-deposit').className = "flex-1 py-1.5 rounded font-semibold bg-amber-600 text-white transition cursor-pointer";
+        document.getElementById('wtab-withdraw').className = "flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition cursor-pointer";
         document.getElementById('walletDepositSection').classList.remove('hidden');
         document.getElementById('walletWithdrawSection').classList.add('hidden');
       } else {
-        document.getElementById('wtab-withdraw').className = "flex-1 py-1.5 rounded font-semibold bg-rose-600 text-white transition";
-        document.getElementById('wtab-deposit').className = "flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition";
+        document.getElementById('wtab-withdraw').className = "flex-1 py-1.5 rounded font-semibold bg-rose-600 text-white transition cursor-pointer";
+        document.getElementById('wtab-deposit').className = "flex-1 py-1.5 rounded font-semibold text-gray-400 hover:text-white transition cursor-pointer";
         document.getElementById('walletWithdrawSection').classList.remove('hidden');
         document.getElementById('walletDepositSection').classList.add('hidden');
       }
