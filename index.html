@@ -155,4 +155,668 @@
 
   <!-- DETAILED PUBLIC PROFILE VIEW MODAL -->
   <div id="publicProfileModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-5 rounded-3xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y
+    <div class="glass-card p-5 rounded-3xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto relative border-rose-500/40">
+      <button onclick="closeModal('publicProfileModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div id="pubProfileContent" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DEDICATED CHAT PAGE SECTION -->
+  <section id="chatPageSection" class="hidden max-w-md mx-auto px-4 space-y-3">
+    <div class="glass-card p-3 rounded-2xl flex items-center justify-between border-rose-500/30">
+      <div class="flex items-center space-x-3">
+        <button onclick="switchTab('feed')" class="text-rose-400 hover:text-white cursor-pointer"><i class="fa-solid fa-arrow-left text-lg"></i></button>
+        <img id="chatHeaderImg" src="" class="w-10 h-10 rounded-full object-cover border border-rose-500">
+        <div>
+          <h3 id="chatHeaderName" class="font-bold text-sm">Chat</h3>
+          <p class="text-[10px] text-emerald-400">Online • 5 coins per message (Auto-charged)</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="chatMessagesContainer" class="glass-card p-3 rounded-2xl h-80 overflow-y-auto hide-scrollbar space-y-2 text-xs flex flex-col">
+      <div class="bg-white/10 p-2 rounded-xl self-start max-w-[80%]">Hi! Let's connect and chat 💕 (Costs 5 coins per message)</div>
+    </div>
+
+    <div class="flex space-x-2">
+      <input type="text" id="chatInputText" placeholder="Type message (Costs 5 coins)..." class="flex-1 bg-black/60 border border-white/20 rounded-xl p-2.5 text-xs text-rose-200 outline-none">
+      <button onclick="sendChatMessage()" class="bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </section>
+
+  <!-- SECURE ADMIN DASHBOARD -->
+  <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
+    <div class="flex items-center justify-between glass-card p-3 rounded-xl border-amber-500/30">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-user-shield text-amber-400 text-xl"></i>
+        <div>
+          <h2 class="font-bold text-amber-300 text-sm">Admin Control Center</h2>
+          <p id="adminRoleDisplay" class="text-[10px] text-gray-300">Active Role</p>
+        </div>
+      </div>
+      <button onclick="closeAdminPanel()" class="text-xs bg-rose-600 px-2 py-1 rounded text-white cursor-pointer">Exit</button>
+    </div>
+
+    <div class="glass-card p-4 rounded-xl space-y-3">
+      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> Registered Users & Full Profile Control</h3>
+      <div id="adminUserList" class="space-y-2 max-h-56 overflow-y-auto hide-scrollbar text-xs"></div>
+    </div>
+  </section>
+
+  <!-- Bottom Nav -->
+  <nav class="fixed bottom-0 left-0 right-0 glass-card border-t border-rose-500/20 py-3 px-6 flex justify-around z-40 max-w-md mx-auto">
+    <button onclick="switchTab('feed')" id="nav-feed" class="text-rose-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-fire text-lg"></i><span class="text-[10px] mt-1">Discover</span></button>
+    <button onclick="claimDailyBonus()" class="text-amber-400 hover:text-amber-300 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-gift text-lg"></i><span class="text-[10px] mt-1">Daily +5</span></button>
+    <button onclick="openProfileModal()" class="text-gray-400 hover:text-rose-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-user-pen text-lg"></i><span class="text-[10px] mt-1">My Profile</span></button>
+    <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
+  </nav>
+
+  <!-- Profile Creation Modal -->
+  <div id="createProfileModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-3 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <h3 class="font-bold text-lg text-rose-300"><i class="fa-solid fa-user-pen mr-2"></i>My Profile & Preferences</h3>
+        <button onclick="closeModal('createProfileModal')" class="text-gray-400 hover:text-white cursor-pointer">&times;</button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <input type="text" id="profProfession" placeholder="Profession / Bio" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        <input type="text" id="profInstagram" placeholder="Instagram Handle" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+        
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] text-gray-300 block mb-1">My Gender:</label>
+            <select id="profGenderSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-300 block mb-1">Looking For:</label>
+            <select id="profLookingForSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Other">Other</option>
+              <option value="All">All</option>
+            </select>
+          </div>
+        </div>
+
+        <select id="profModeSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
+          <option value="Dating">Dating</option>
+          <option value="Friendship">Friendship</option>
+          <option value="Blind Date">Blind Date</option>
+        </select>
+        
+        <div>
+          <label class="block text-amber-300 font-semibold mb-1">Upload Profile Photos (1-10 Pics):</label>
+          <input type="file" id="profileImageFiles" accept="image/*" multiple onchange="handleImageFilesUpload(this)" class="w-full text-gray-400 text-xs bg-black/40 p-2 rounded-lg border border-white/20">
+          <p id="imageCountStatus" class="text-[10px] text-gray-400 mt-1">0 images selected</p>
+        </div>
+
+        <div id="imagePreviewContainer" class="grid grid-cols-5 gap-1 max-h-24 overflow-y-auto"></div>
+
+        <button type="button" onclick="saveUserProfilePhotos()" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white cursor-pointer">Save Profile & Photos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <h3 class="font-bold text-lg text-amber-300"><i class="fa-solid fa-wallet mr-2"></i>Coin Wallet ($1 = 50 Coins)</h3>
+        <button onclick="closeModal('walletModal')" class="text-gray-400 hover:text-white cursor-pointer">&times;</button>
+      </div>
+
+      <div class="bg-rose-950/40 p-3 rounded-xl border border-rose-500/20 text-center">
+        <p class="text-xs text-gray-400">Username: <b id="displayUsername" class="text-amber-200"></b></p>
+        <p class="text-xs text-gray-400 mt-1">Available Balance</p>
+        <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">0 Coins</p>
+        <p id="modalUsdBalance" class="text-xs text-gray-300 mt-0.5">($0.00 USD)</p>
+      </div>
+      <button onclick="closeModal('walletModal')" class="w-full py-2 bg-amber-600 font-bold rounded-lg text-white text-xs cursor-pointer">Close Wallet</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPER_ADMIN_ID = "8238330395";
+    let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || "{}");
+    let registeredUsers = JSON.parse(localStorage.getItem("heartsync_registered_users") || "{}");
+    let activeSessionUsername = localStorage.getItem("heartsync_active_session") || null;
+
+    if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
+      document.getElementById('authModal').classList.remove('hidden');
+    } else {
+      document.getElementById('authModal').classList.add('hidden');
+      initUserSession(activeSessionUsername);
+    }
+
+    function toggleAuthMode(mode) {
+      if (mode === 'login') {
+        document.getElementById('signupFormFields').classList.add('hidden');
+        document.getElementById('loginFormFields').classList.remove('hidden');
+        document.getElementById('authTitle').innerText = "Welcome Back";
+      } else {
+        document.getElementById('loginFormFields').classList.add('hidden');
+        document.getElementById('signupFormFields').classList.remove('hidden');
+        document.getElementById('authTitle').innerText = "Welcome to HeartSync";
+      }
+    }
+
+    function submitRegistration() {
+      const firstName = document.getElementById('regFirstName').value.trim();
+      const lastName = document.getElementById('regLastName').value.trim();
+      const username = document.getElementById('regUsername').value.trim().toLowerCase();
+      const phone = document.getElementById('regPhone').value.trim();
+      const gender = document.getElementById('regGender').value;
+      const lookingFor = document.getElementById('regLookingFor').value;
+      const age = parseInt(document.getElementById('regAge').value);
+      const password = document.getElementById('regPassword').value;
+
+      if (!firstName || !lastName || !username || !phone || !age || !password) {
+        alert("Please fill out all sign up fields including username!");
+        return;
+      }
+
+      if (registeredUsers[username]) {
+        alert("Username already taken! Please choose another or login.");
+        return;
+      }
+
+      registeredUsers[username] = {
+        firstName, lastName, username, phone, gender, lookingFor, age, password,
+        coins: 100,
+        lastDailyClaim: 0,
+        profession: "Member",
+        instagram: "@" + username,
+        mode: "Dating",
+        photos: ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500"],
+        friends: [],
+        comments: [],
+        createdAt: new Date().toISOString()
+      };
+
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      localStorage.setItem("heartsync_active_session", username);
+      activeSessionUsername = username;
+      
+      alert("Registration successful! You received 100 Coins Signup Bonus 🎉");
+      document.getElementById('authModal').classList.add('hidden');
+      initUserSession(username);
+      syncProfilesList();
+    }
+
+    function submitLogin() {
+      const username = document.getElementById('logUsername').value.trim().toLowerCase();
+      const password = document.getElementById('logPassword').value;
+
+      if (!username || !password) {
+        alert("Please enter username and password!");
+        return;
+      }
+
+      let user = registeredUsers[username];
+      if (!user || user.password !== password) {
+        alert("Invalid username or password!");
+        return;
+      }
+
+      localStorage.setItem("heartsync_active_session", username);
+      activeSessionUsername = username;
+      document.getElementById('authModal').classList.add('hidden');
+      initUserSession(username);
+      syncProfilesList();
+    }
+
+    function logoutUser() {
+      localStorage.removeItem("heartsync_active_session");
+      activeSessionUsername = null;
+      location.reload();
+    }
+
+    function initUserSession(username) {
+      let user = registeredUsers[username];
+      if (!user) return;
+      document.getElementById('displayUsername').innerText = "@" + username + ` (${user.firstName})`;
+      updateCoinDisplays(user.coins);
+      syncProfilesList();
+    }
+
+    function updateCoinDisplays(coins) {
+      document.getElementById('userCoinsDisplay').innerText = coins;
+      let usd = (coins / 50).toFixed(2);
+      document.getElementById('userUsdDisplay').innerText = `$${usd}`;
+      document.getElementById('modalCoinBalance').innerText = coins + " Coins";
+    }
+
+    function claimDailyBonus() {
+      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) return;
+      let user = registeredUsers[activeSessionUsername];
+      let now = Date.now();
+      let twentyFourHours = 24 * 60 * 60 * 1000;
+
+      if (now - user.lastDailyClaim < twentyFourHours) {
+        alert(`Daily bonus already claimed! Come back later.`);
+        return;
+      }
+
+      user.coins += 5;
+      user.lastDailyClaim = now;
+      registeredUsers[activeSessionUsername] = user;
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      updateCoinDisplays(user.coins);
+      alert("Claimed +5 Coins Daily Bonus! 🎉");
+    }
+
+    let profiles = [];
+    let tempUploadedPhotos = [];
+
+    function syncProfilesList() {
+      profiles = [];
+      let currentUser = registeredUsers[activeSessionUsername];
+      let myLookingFor = currentUser ? (currentUser.genderFilterOverride || currentUser.lookingFor || "All") : "All";
+
+      for (let uname in registeredUsers) {
+        let u = registeredUsers[uname];
+        if (uname === activeSessionUsername) continue; // Skip self
+
+        // Filter based on "Looking For" preference
+        if (myLookingFor !== "All" && u.gender !== myLookingFor) {
+          continue;
+        }
+
+        profiles.push({
+          id: uname,
+          name: u.firstName + " " + u.lastName,
+          username: u.username,
+          age: u.age,
+          gender: u.gender,
+          lookingFor: u.lookingFor || "All",
+          profession: u.profession || "Member",
+          mode: u.mode || "Dating",
+          photos: u.photos && u.photos.length > 0 ? u.photos : ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500"],
+          currentPhotoIdx: 0,
+          instagram: u.instagram || ("@" + u.username),
+          friends: u.friends || [],
+          comments: u.comments || []
+        });
+      }
+      renderProfiles();
+    }
+
+    let selectedMode = "Dating";
+    let currentProfileIndex = 0;
+
+    function renderProfiles() {
+      const genderFilterVal = document.getElementById('genderFilter').value;
+      const maxAge = parseInt(document.getElementById('ageSlider').value);
+
+      // Update looking-for filter override based on dropdown
+      if (activeSessionUsername && registeredUsers[activeSessionUsername]) {
+        registeredUsers[activeSessionUsername].genderFilterOverride = genderFilterVal;
+      }
+
+      const filtered = profiles.filter(p => p.age <= maxAge && p.mode === selectedMode);
+      const stack = document.getElementById('cardStack');
+      
+      if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
+        currentProfileIndex = 0;
+        stack.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center text-gray-400">No profiles found matching your preference! Try changing gender filter above or sign up another account.</div>`;
+        return;
+      }
+      const p = filtered[currentProfileIndex];
+      const activePhoto = p.photos[p.currentPhotoIdx || 0];
+
+      stack.innerHTML = `
+        <div onclick="openPublicProfile('${p.id}')" class="glass-card rounded-3xl overflow-hidden border border-rose-500/20 shadow-2xl relative cursor-pointer">
+          <div class="relative h-96">
+            <img src="${activePhoto}" class="w-full h-full object-cover">
+            ${p.photos.length > 1 ? `
+              <div class="absolute top-2 left-2 right-2 flex space-x-1 z-10">
+                ${p.photos.map((_, idx) => `<div class="h-1 flex-1 rounded-full ${idx === (p.currentPhotoIdx || 0) ? 'bg-rose-500' : 'bg-white/40'}"></div>`).join('')}
+              </div>
+              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', -1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20 cursor-pointer"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', 1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20 cursor-pointer"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            ` : ''}
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4 pointer-events-none">
+              <h3 class="text-2xl font-bold">${p.name}, ${p.age} (${p.gender})</h3>
+              <p class="text-xs text-rose-300"><i class="fa-solid fa-briefcase mr-1"></i>${p.profession} | Looking for: ${p.lookingFor}</p>
+              <p class="text-xs text-amber-300 mt-1 font-bold"><i class="fa-solid fa-hand-pointer mr-1"></i>Tap card to view full profile photos, add friend & comment</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function changeCardPhoto(profileId, direction) {
+      let p = profiles.find(x => x.id === profileId);
+      if (p && p.photos) {
+        p.currentPhotoIdx = (p.currentPhotoIdx || 0) + direction;
+        if (p.currentPhotoIdx < 0) p.currentPhotoIdx = p.photos.length - 1;
+        if (p.currentPhotoIdx >= p.photos.length) p.currentPhotoIdx = 0;
+        renderProfiles();
+      }
+    }
+
+    function setMode(mode) {
+      selectedMode = mode;
+      ['Dating', 'Friendship', 'Blind Date'].forEach(m => {
+        document.getElementById(`mode-${m}`).className = (m === mode) ? "flex-1 py-2 rounded-lg font-semibold bg-rose-600 text-white transition cursor-pointer" : "flex-1 py-2 rounded-lg font-semibold text-gray-400 hover:text-white transition cursor-pointer";
+      });
+      currentProfileIndex = 0;
+      renderProfiles();
+    }
+
+    function swipe(action) {
+      if (action === 'like') {
+        alert("You liked this profile! ❤️");
+      } else {
+        alert("Skipped profile.");
+      }
+      currentProfileIndex++;
+      renderProfiles();
+    }
+
+    // OPEN DETAILED PUBLIC PROFILE VIEW WITH ACTIONS
+    let viewedProfileId = null;
+
+    function openPublicProfile(userId) {
+      viewedProfileId = userId;
+      let targetUser = registeredUsers[userId];
+      if (!targetUser) return;
+
+      let photosHtml = targetUser.photos.map(img => `<img src="${img}" class="w-full h-64 object-cover rounded-2xl mb-2 border border-white/10">`).join('');
+      let commentsHtml = (targetUser.comments || []).map(c => `<div class="bg-black/40 p-2 rounded text-xs mb-1"><b class="text-rose-300">@${c.user}:</b> ${c.text}</div>`).join('');
+
+      let content = `
+        <div class="text-center space-y-1">
+          <h3 class="font-bold text-xl text-rose-300">${targetUser.firstName} ${targetUser.lastName}, ${targetUser.age}</h3>
+          <p class="text-xs text-amber-300">@${targetUser.username} • Gender: ${targetUser.gender} • Looking For: ${targetUser.lookingFor}</p>
+          <p class="text-xs text-gray-300"><i class="fa-solid fa-briefcase mr-1"></i>${targetUser.profession || 'Member'} | IG: ${targetUser.instagram}</p>
+        </div>
+        <div class="max-h-60 overflow-y-auto hide-scrollbar">${photosHtml}</div>
+        
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button onclick="openChatWithUser('${userId}')" class="py-2 bg-rose-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-comments mr-1"></i> Message (5c)</button>
+          <button onclick="addFriend('${userId}')" class="py-2 bg-amber-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-user-plus mr-1"></i> Add Friend</button>
+          <button onclick="swipe('like'); closeModal('publicProfileModal');" class="py-2 bg-emerald-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-heart mr-1"></i> Like Profile</button>
+          <button onclick="swipe('dislike'); closeModal('publicProfileModal');" class="py-2 bg-gray-700 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-xmark mr-1"></i> Dislike</button>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="space-y-2 pt-2 border-t border-white/10">
+          <p class="text-xs font-bold text-rose-300">Profile Comments (${(targetUser.comments || []).length}):</p>
+          <div class="max-h-32 overflow-y-auto hide-scrollbar space-y-1">${commentsHtml || '<p class="text-[10px] text-gray-400">No comments yet. Leave one below!</p>'}</div>
+          <div class="flex space-x-1">
+            <input type="text" id="profileCommentInput" placeholder="Write comment..." class="flex-1 bg-black/55 border border-white/20 rounded p-1.5 text-xs text-rose-200 outline-none">
+            <button onclick="submitProfileComment()" class="bg-rose-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">Post</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('pubProfileContent').innerHTML = content;
+      openModal('publicProfileModal');
+    }
+
+    function addFriend(userId) {
+      let targetUser = registeredUsers[userId];
+      let currentUser = registeredUsers[activeSessionUsername];
+      if (!targetUser.friends) targetUser.friends = [];
+      if (!targetUser.friends.includes(activeSessionUsername)) {
+        targetUser.friends.push(activeSessionUsername);
+        localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+        alert(`Successfully sent friend request / added @${userId} as friend! 🎉`);
+      } else {
+        alert("Already added as friend!");
+      }
+    }
+
+    function submitProfileComment() {
+      let commentText = document.getElementById('profileCommentInput').value.trim();
+      if (!commentText || !viewedProfileId) return;
+      let targetUser = registeredUsers[viewedProfileId];
+      if (!targetUser.comments) targetUser.comments = [];
+      targetUser.comments.push({ user: activeSessionUsername, text: commentText });
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      document.getElementById('profileCommentInput').value = "";
+      openPublicProfile(viewedProfileId); // Refresh modal view
+    }
+
+    let activeChatUser = null;
+
+    function openChatWithCurrentProfile() {
+      const genderFilterVal = document.getElementById('genderFilter').value;
+      const maxAge = parseInt(document.getElementById('ageSlider').value);
+      const filtered = profiles.filter(p => p.age <= maxAge && p.mode === selectedMode);
+      
+      if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
+        alert("No active profile to chat with right now!");
+        return;
+      }
+      openChatWithUser(filtered[currentProfileIndex].id);
+    }
+
+    function openChatWithUser(userId) {
+      closeModal('publicProfileModal');
+      activeChatUser = registeredUsers[userId];
+      let currentUser = registeredUsers[activeSessionUsername];
+
+      if (currentUser.coins < 5) {
+        alert("You need at least 5 coins to open a chat session! Please deposit coins.");
+        openModal('walletModal');
+        return;
+      }
+
+      currentUser.coins -= 5;
+      registeredUsers[activeSessionUsername] = currentUser;
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      updateCoinDisplays(currentUser.coins);
+      
+      document.getElementById('mainAppSection').classList.add('hidden');
+      document.getElementById('filterSection').classList.add('hidden');
+      document.getElementById('chatPageSection').classList.remove('hidden');
+
+      document.getElementById('chatHeaderName').innerText = activeChatUser.firstName + " " + activeChatUser.lastName;
+      document.getElementById('chatHeaderImg').src = activeChatUser.photos[0];
+
+      let chatKey = `chat_${activeSessionUsername}_${userId}`;
+      let history = JSON.parse(localStorage.getItem(chatKey) || JSON.stringify([
+        { sender: 'them', text: `Hi there! Thanks for reaching out 💕 (5 coins charged)` }
+      ]));
+
+      renderChatHistory(history);
+    }
+
+    function renderChatHistory(history) {
+      let container = document.getElementById('chatMessagesContainer');
+      container.innerHTML = history.map(m => `
+        <div class="p-2.5 rounded-xl max-w-[80%] ${m.sender === 'me' ? 'bg-rose-600 self-end text-white' : 'bg-white/10 self-start text-rose-100'}">
+          ${m.text}
+        </div>`).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendChatMessage() {
+      let textInput = document.getElementById('chatInputText');
+      let text = textInput.value.trim();
+      if (!text || !activeChatUser) return;
+
+      let user = registeredUsers[activeSessionUsername];
+      if (user.coins < 5) {
+        alert("You need at least 5 coins to send a message!");
+        return;
+      }
+
+      user.coins -= 5;
+      registeredUsers[activeSessionUsername] = user;
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      updateCoinDisplays(user.coins);
+
+      let chatKey = `chat_${activeSessionUsername}_${activeChatUser.username}`;
+      let history = JSON.parse(localStorage.getItem(chatKey) || "[]");
+      
+      history.push({ sender: 'me', text });
+      textInput.value = "";
+
+      setTimeout(() => {
+        history.push({ sender: 'them', text: "That's wonderful! Let's get to know each other 😊" });
+        localStorage.setItem(chatKey, JSON.stringify(history));
+        renderChatHistory(history);
+      }, 1000);
+
+      localStorage.setItem(chatKey, JSON.stringify(history));
+      renderChatHistory(history);
+    }
+
+    function switchTab(tab) {
+      if (tab === 'feed') {
+        document.getElementById('chatPageSection').classList.add('hidden');
+        document.getElementById('adminSection').classList.add('hidden');
+        document.getElementById('mainAppSection').classList.remove('hidden');
+        document.getElementById('filterSection').classList.remove('hidden');
+        syncProfilesList();
+      }
+    }
+
+    function openProfileModal() {
+      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
+        alert("Session error! Please log in again.");
+        document.getElementById('authModal').classList.remove('hidden');
+        return;
+      }
+      let u = registeredUsers[activeSessionUsername];
+      document.getElementById('profProfession').value = u.profession || "";
+      document.getElementById('profInstagram').value = u.instagram || "";
+      document.getElementById('profGenderSelect').value = u.gender || "Female";
+      document.getElementById('profLookingForSelect').value = u.lookingFor || "All";
+      document.getElementById('profModeSelect').value = u.mode || "Dating";
+      
+      tempUploadedPhotos = u.photos ? [...u.photos] : [];
+      const container = document.getElementById('imagePreviewContainer');
+      container.innerHTML = tempUploadedPhotos.map(p => `<img src="${p}" class="w-12 h-12 object-cover rounded border border-rose-500/40">`).join('');
+      document.getElementById('imageCountStatus').innerText = `${tempUploadedPhotos.length} image(s) loaded`;
+
+      openModal('createProfileModal');
+    }
+
+    function handleImageFilesUpload(inputElement) {
+      const files = inputElement.files;
+      if (files.length < 1) return;
+      if (files.length > 10) { alert("Max 10 pictures allowed."); return; }
+
+      tempUploadedPhotos = [];
+      const container = document.getElementById('imagePreviewContainer');
+      container.innerHTML = "";
+
+      let loaded = 0;
+      for (let i = 0; i < files.length; i++) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          tempUploadedPhotos.push(e.target.result);
+          container.innerHTML += `<img src="${e.target.result}" class="w-12 h-12 object-cover rounded border border-rose-500/40">`;
+          loaded++;
+          document.getElementById('imageCountStatus').innerText = `${loaded} image(s) loaded successfully`;
+        };
+        reader.readAsDataURL(files[i]);
+      }
+    }
+
+    function saveUserProfilePhotos() {
+      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) return;
+      let user = registeredUsers[activeSessionUsername];
+      user.profession = document.getElementById('profProfession').value.trim() || user.profession;
+      user.instagram = document.getElementById('profInstagram').value.trim() || user.instagram;
+      user.gender = document.getElementById('profGenderSelect').value;
+      user.lookingFor = document.getElementById('profLookingForSelect').value;
+      user.mode = document.getElementById('profModeSelect').value;
+
+      if (tempUploadedPhotos.length > 0) user.photos = tempUploadedPhotos;
+
+      registeredUsers[activeSessionUsername] = user;
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      alert("Profile updated successfully!");
+      closeModal('createProfileModal');
+      syncProfilesList();
+    }
+
+    function verifyAndOpenAdmin() {
+      let tg = window.Telegram?.WebApp;
+      let userId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
+      if (!userId) {
+        userId = prompt("Enter your Telegram User ID to access Admin Panel:") || "";
+        userId = userId.trim();
+      }
+
+      if (userId === SUPER_ADMIN_ID || adminRegistry[userId]) {
+        toggleAdminView(true, userId);
+      } else {
+        alert("Access Denied.");
+      }
+    }
+
+    function toggleAdminView(show, userId) {
+      document.getElementById('mainAppSection').style.display = show ? 'none' : 'block';
+      document.getElementById('filterSection').style.display = show ? 'none' : 'block';
+      document.getElementById('adminSection').style.display = show ? 'block' : 'none';
+      document.getElementById('chatPageSection').classList.add('hidden');
+      if (show) renderAdminDashboardData();
+    }
+
+    function closeAdminPanel() { 
+      document.getElementById('mainAppSection').style.display = 'block';
+      document.getElementById('filterSection').style.display = 'block';
+      document.getElementById('adminSection').style.display = 'none';
+    }
+
+    function renderAdminDashboardData() {
+      let userListHtml = "";
+      for (let uname in registeredUsers) {
+        let u = registeredUsers[uname];
+        let firstPhoto = u.photos && u.photos[0] ? u.photos[0] : "";
+        userListHtml += `
+          <div class="p-2.5 bg-white/5 rounded-lg space-y-1.5 border border-white/10 flex items-center space-x-3">
+            <img src="${firstPhoto}" class="w-12 h-12 rounded-lg object-cover border border-rose-500/40">
+            <div class="flex-1">
+              <div class="flex justify-between items-center">
+                <p class="font-bold text-rose-300">@${u.username} (${u.firstName})</p>
+                <span class="text-amber-300 font-bold">${u.coins} Coins</span>
+              </div>
+              <p class="text-[10px] text-gray-300">Gender: ${u.gender} | Looking: ${u.lookingFor} | Age: ${u.age}</p>
+              <div class="flex space-x-2 pt-1">
+                <button onclick="adminEditUserCoins('${uname}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">+50 Coins</button>
+                <button onclick="adminDeleteUser('${uname}')" class="bg-rose-600 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">Delete</button>
+              </div>
+            </div>
+          </div>`;
+      }
+      document.getElementById('adminUserList').innerHTML = userListHtml || '<p class="text-gray-400 text-center">No registered users yet.</p>';
+    }
+
+    function adminEditUserCoins(username, amt) {
+      registeredUsers[username].coins += amt;
+      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+      if (username === activeSessionUsername) updateCoinDisplays(registeredUsers[activeSessionUsername].coins);
+      renderAdminDashboardData();
+    }
+
+    function adminDeleteUser(username) {
+      if (confirm(`Delete @${username}?`)) {
+        delete registeredUsers[username];
+        localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
+        renderAdminDashboardData();
+        syncProfilesList();
+      }
+    }
+
+    function updateAgeLabel(val) { document.getElementById('ageLabel').innerText = val; }
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    syncProfilesList();
+  </script>
+</body>
+</html>
