@@ -57,7 +57,7 @@
             </select>
           </div>
           <div>
-            <label class="text-[10px] text-gray-300 block mb-1">Looking For:</label>
+            <label class="text-[10px] text-gray-300 block mb-1">Searching For:</label>
             <select id="regLookingFor" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
               <option value="Female">Female</option>
               <option value="Male">Male</option>
@@ -235,7 +235,7 @@
             </select>
           </div>
           <div>
-            <label class="text-[10px] text-gray-300 block mb-1">Looking For:</label>
+            <label class="text-[10px] text-gray-300 block mb-1">Searching For:</label>
             <select id="profLookingForSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
               <option value="Female">Female</option>
               <option value="Male">Male</option>
@@ -424,7 +424,7 @@
         let u = registeredUsers[uname];
         if (uname === activeSessionUsername) continue; // Skip self
 
-        // Filter based on "Looking For" preference
+        // Filter based on Looking For preference
         if (myLookingFor !== "All" && u.gender !== myLookingFor) {
           continue;
         }
@@ -455,7 +455,6 @@
       const genderFilterVal = document.getElementById('genderFilter').value;
       const maxAge = parseInt(document.getElementById('ageSlider').value);
 
-      // Update looking-for filter override based on dropdown
       if (activeSessionUsername && registeredUsers[activeSessionUsername]) {
         registeredUsers[activeSessionUsername].genderFilterOverride = genderFilterVal;
       }
@@ -465,7 +464,7 @@
       
       if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
         currentProfileIndex = 0;
-        stack.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center text-gray-400">No profiles found matching your preference! Try changing gender filter above or sign up another account.</div>`;
+        stack.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center text-gray-400">No profiles found matching your criteria! Try switching filter options above.</div>`;
         return;
       }
       const p = filtered[currentProfileIndex];
@@ -520,7 +519,6 @@
       renderProfiles();
     }
 
-    // OPEN DETAILED PUBLIC PROFILE VIEW WITH ACTIONS
     let viewedProfileId = null;
 
     function openPublicProfile(userId) {
@@ -539,7 +537,6 @@
         </div>
         <div class="max-h-60 overflow-y-auto hide-scrollbar">${photosHtml}</div>
         
-        <!-- Action Buttons -->
         <div class="grid grid-cols-2 gap-2 pt-2">
           <button onclick="openChatWithUser('${userId}')" class="py-2 bg-rose-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-comments mr-1"></i> Message (5c)</button>
           <button onclick="addFriend('${userId}')" class="py-2 bg-amber-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-user-plus mr-1"></i> Add Friend</button>
@@ -547,7 +544,6 @@
           <button onclick="swipe('dislike'); closeModal('publicProfileModal');" class="py-2 bg-gray-700 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-xmark mr-1"></i> Dislike</button>
         </div>
 
-        <!-- Comments Section -->
         <div class="space-y-2 pt-2 border-t border-white/10">
           <p class="text-xs font-bold text-rose-300">Profile Comments (${(targetUser.comments || []).length}):</p>
           <div class="max-h-32 overflow-y-auto hide-scrollbar space-y-1">${commentsHtml || '<p class="text-[10px] text-gray-400">No comments yet. Leave one below!</p>'}</div>
@@ -564,12 +560,11 @@
 
     function addFriend(userId) {
       let targetUser = registeredUsers[userId];
-      let currentUser = registeredUsers[activeSessionUsername];
       if (!targetUser.friends) targetUser.friends = [];
       if (!targetUser.friends.includes(activeSessionUsername)) {
         targetUser.friends.push(activeSessionUsername);
         localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-        alert(`Successfully sent friend request / added @${userId} as friend! 🎉`);
+        alert(`Successfully added @${userId} as friend! 🎉`);
       } else {
         alert("Already added as friend!");
       }
@@ -583,13 +578,12 @@
       targetUser.comments.push({ user: activeSessionUsername, text: commentText });
       localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
       document.getElementById('profileCommentInput').value = "";
-      openPublicProfile(viewedProfileId); // Refresh modal view
+      openPublicProfile(viewedProfileId);
     }
 
     let activeChatUser = null;
 
     function openChatWithCurrentProfile() {
-      const genderFilterVal = document.getElementById('genderFilter').value;
       const maxAge = parseInt(document.getElementById('ageSlider').value);
       const filtered = profiles.filter(p => p.age <= maxAge && p.mode === selectedMode);
       
