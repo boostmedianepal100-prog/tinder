@@ -7,14 +7,6 @@
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #ff416c, #ff4b2b);
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-secondary: #94a3b8;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -23,11 +15,12 @@
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            width: 100vw;
             overflow: hidden;
             padding: 16px;
         }
@@ -42,7 +35,7 @@
         .logo {
             font-size: 22px;
             font-weight: 800;
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -65,4 +58,122 @@
             justify-content: center;
             align-items: center;
             max-width: 400px;
-            width: 100
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .profile-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            max-height: 440px;
+            background: #1e293b;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 65%;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .profile-bio {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            padding: 20px 0;
+        }
+
+        .btn-action {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: #ffffff;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease;
+        }
+
+        .btn-action:active {
+            transform: scale(0.9);
+        }
+
+        .btn-pass { color: #ef4444; }
+        .btn-like { color: #10b981; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">💕 HeartSync</div>
+        <div class="wallet-badge" id="coinBalance">🪙 50 Coins</div>
+    </header>
+
+    <div class="card-container" id="cardContainer">
+        <!-- Profile Card -->
+        <div class="profile-card" id="card1">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800" class="profile-img" alt="Profile">
+            <div class="profile-info">
+                <div class="profile-name">Sophia, 23</div>
+                <div class="profile-bio">Coffee lover ☕ & travel enthusiast ✈️</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-action btn-pass" onclick="handleSwipe('pass')">❌</button>
+        <button class="btn-action btn-like" onclick="handleSwipe('like')">💖</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function handleSwipe(action) {
+            const card = document.getElementById('card1');
+            if (action === 'like') {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+            }
+            
+            card.style.transform = action === 'like' ? 'translateX(150px) rotate(20deg)' : 'translateX(-150px) rotate(-20deg)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.transform = 'none';
+                card.style.opacity = '1';
+            }, 300);
+        }
+    </script>
+</body>
+</html>
