@@ -1,816 +1,1474 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HeartSync - Romantic Dating Mini App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      background: linear-gradient(135deg, #1a0b16 0%, #2d122d 50%, #170923 100%);
-      color: #fff;
-      font-family: 'Segoe UI', Roboto, sans-serif;
-      min-height: 100vh;
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.07);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
-    .heart-glow {
-      filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.6));
-    }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HeartSync</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#150a14;--bg2:#241026;--card:rgba(255,255,255,.07);--line:rgba(255,255,255,.14);
+  --rose:#f43f5e;--pink:#ec4899;--amber:#fbbf24;--green:#34d399;--grey:#9ca3af;
+  --text:#fff;
+}
+body{background:linear-gradient(160deg,#1a0b16 0%,#2d122d 45%,#170923 100%);
+  background-attachment:fixed;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:100vh;padding-bottom:86px;overflow-x:hidden}
+.glass{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:20px}
+.hide{display:none !important}
+.wrap{max-width:460px;margin:0 auto;padding:0 14px}
+header{position:sticky;top:0;z-index:40;background:rgba(21,10,20,.86);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(244,63,94,.22);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:7px;font-weight:800;font-size:19px;
+  background:linear-gradient(90deg,#fb7185,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+.coinpill{display:flex;align-items:center;gap:6px;background:rgba(120,20,50,.55);
+  border:1px solid rgba(244,63,94,.45);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;color:#fcd34d}
+.hbtn{background:none;border:0;color:#fb7185;font-size:16px;padding:6px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:460px;margin:0 auto;
+  background:rgba(26,12,26,.95);backdrop-filter:blur(14px);border-top:1px solid rgba(244,63,94,.22);
+  display:flex;justify-content:space-around;padding:8px 4px 10px}
+nav button{background:none;border:0;color:#8b7286;display:flex;flex-direction:column;align-items:center;
+  gap:3px;font-size:9.5px;font-weight:600;flex:1;padding:2px}
+nav button.on{color:#fb7185}
+nav .ico{font-size:17px;line-height:1}
+.btn{border:0;border-radius:13px;padding:12px 16px;font-size:14px;font-weight:700;color:#fff;
+  background:linear-gradient(90deg,var(--rose),var(--pink));width:100%;cursor:pointer;display:block}
+.btn:active{opacity:.85}
+.btn.ghost{background:rgba(255,255,255,.09);border:1px solid var(--line)}
+.btn.soft{background:rgba(244,63,94,.16);border:1px solid rgba(244,63,94,.4);color:#fda4af}
+.btn.green{background:linear-gradient(90deg,#059669,#34d399)}
+.btn.amber{background:linear-gradient(90deg,#d97706,#fbbf24);color:#231000}
+.btn.red{background:linear-gradient(90deg,#b91c1c,#ef4444)}
+.btn.sm{padding:8px 11px;font-size:12px;border-radius:10px;width:auto}
+.btn:disabled{opacity:.45}
+input,select,textarea{width:100%;background:rgba(0,0,0,.45);border:1px solid var(--line);
+  border-radius:11px;padding:11px 12px;color:#ffe4e6;font-size:13.5px;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:rgba(244,63,94,.7)}
+label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bottom:5px;letter-spacing:.3px}
+.field{margin-bottom:10px}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.h1{font-size:22px;font-weight:800;margin-bottom:4px}
+.h2{font-size:14.5px;font-weight:800;color:#fda4af;margin-bottom:8px}
+.sub{font-size:11.5px;color:var(--grey);line-height:1.55}
+.center{text-align:center}
+.avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid rgba(244,63,94,.5);flex:none;
+  background:linear-gradient(135deg,#831843,#be185d);display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fecdd3;font-size:15px}
+.card{position:relative;border-radius:22px;overflow:hidden;border:1px solid rgba(244,63,94,.22);
+  box-shadow:0 14px 40px rgba(0,0,0,.5);background:#241026}
+.card .photo{width:100%;height:440px;object-fit:cover;display:block;background:#2a1430}
+.card .noPhoto{width:100%;height:440px;display:flex;align-items:center;justify-content:center;
+  font-size:64px;font-weight:800;color:rgba(255,255,255,.14);
+  background:linear-gradient(160deg,#3b1229,#5b1a3d)}
+.card .grad{position:absolute;left:0;right:0;bottom:0;padding:16px 14px 14px;pointer-events:none;
+  background:linear-gradient(to top,rgba(0,0,0,.94),rgba(0,0,0,.55) 55%,transparent)}
+.card .nm{font-size:21px;font-weight:800;text-shadow:0 2px 8px #000}
+.card .meta{font-size:11.5px;color:#fda4af;margin-top:2px}
+.card .bio{font-size:11px;color:#d1d5db;margin-top:4px;line-height:1.45}
+.pillrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.pill{font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:999px;
+  background:rgba(255,255,255,.14);color:#f5d0d9}
+.pill.fake{background:rgba(251,191,36,.22);color:#fcd34d}
+.pill.on{background:rgba(52,211,153,.22);color:#6ee7b7}
+.acts{display:flex;align-items:center;justify-content:space-around;margin-top:12px;gap:8px}
+.act{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.07);
+  display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.act.big{width:62px;height:62px;font-size:24px;background:linear-gradient(135deg,var(--rose),var(--pink));border:0}
+.act.no{color:#fb7185}
+.act.heart{color:#34d399}
+.act.star{color:#fbbf24}
+.empty{padding:44px 20px;text-align:center;color:var(--grey);font-size:13px;line-height:1.6}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:15px;
+  background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09)}
+.item .txt{flex:1;min-width:0}
+.item .nm{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .ms{font-size:10.5px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.9);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:14px}
+.modal .box{width:100%;max-width:440px;max-height:90vh;overflow-y:auto;border-radius:22px;padding:16px;
+  background:rgba(30,14,30,.98);border:1px solid rgba(244,63,94,.35)}
+.modal .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.modal .top b{font-size:16px;color:#fda4af}
+.x{background:none;border:0;color:#9ca3af;font-size:22px;line-height:1;padding:0 4px}
+.chat{height:calc(100vh - 260px);overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:10px}
+.bub{max-width:82%;padding:8px 11px;border-radius:14px;font-size:13px;line-height:1.45;word-break:break-word}
+.bub.me{align-self:flex-end;background:linear-gradient(90deg,var(--rose),var(--pink));border-bottom-right-radius:5px}
+.bub.them{align-self:flex-start;background:rgba(255,255,255,.1);border-bottom-left-radius:5px}
+.bub .t{display:block;font-size:9px;opacity:.6;margin-top:3px}
+.typing{display:flex;gap:7px;padding:10px 0}
+.typing input{flex:1}
+.badge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(244,63,94,.25);
+  color:#fda4af;text-transform:uppercase;letter-spacing:.4px}
+.badge.g{background:rgba(52,211,153,.2);color:#6ee7b7}
+.badge.a{background:rgba(251,191,36,.2);color:#fcd34d}
+.badge.r{background:rgba(239,68,68,.22);color:#fca5a5}
+.thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.07);
+  border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:18px;color:#8b7286}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .rm{position:absolute;top:1px;right:1px;background:rgba(0,0,0,.75);border:0;color:#fca5a5;
+  border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center}
+.steps{display:flex;gap:5px;margin-bottom:14px}
+.steps i{height:4px;flex:1;border-radius:2px;background:rgba(255,255,255,.15)}
+.steps i.on{background:linear-gradient(90deg,var(--rose),var(--pink))}
+.subnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;scrollbar-width:none}
+.subnav::-webkit-scrollbar{display:none}
+.subnav button{flex:none;font-size:11.5px;font-weight:700;padding:7px 12px;border-radius:999px;
+  background:rgba(255,255,255,.07);border:1px solid var(--line);color:#c9b8c6}
+.subnav button.on{background:linear-gradient(90deg,var(--rose),var(--pink));color:#fff;border-color:transparent}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.07)}
+.kv span:first-child{color:var(--grey)}
+.kv span:last-child{font-weight:700;text-align:right;word-break:break-word;max-width:62%}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;z-index:99;max-width:88%;
+  background:rgba(15,8,14,.97);border:1px solid rgba(244,63,94,.5);color:#fecdd3;
+  padding:11px 16px;border-radius:13px;font-size:12.5px;font-weight:600;text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.spin{width:30px;height:30px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--rose);
+  border-radius:50%;animation:sp .8s linear infinite;margin:26px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.gallery::-webkit-scrollbar{display:none}
+.gallery img{height:300px;border-radius:16px;object-fit:cover;scroll-snap-align:center;flex:none;max-width:100%}
+.cmt{background:rgba(0,0,0,.35);border-radius:11px;padding:8px 10px;font-size:12px;margin-bottom:6px;line-height:1.45}
+.cmt b{color:#fda4af}
+.cmt .who{font-size:9.5px;color:var(--grey);margin-top:3px}
+.tabs2{display:flex;gap:6px;margin-bottom:10px}
+.tabs2 button{flex:1;font-size:11.5px;font-weight:700;padding:8px;border-radius:10px;
+  background:rgba(255,255,255,.07);border:1px solid var(--line);color:#c9b8c6}
+.tabs2 button.on{background:rgba(244,63,94,.22);border-color:rgba(244,63,94,.6);color:#fecdd3}
+.sect{margin-bottom:14px}
+.warn{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.35);color:#fcd34d;
+  font-size:11.5px;line-height:1.5;padding:9px 11px;border-radius:11px;margin-bottom:10px}
+.ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.35);color:#6ee7b7}
+</style>
 </head>
-<body class="pb-28">
+<body>
 
-  <!-- SIGN UP / LOGIN MODAL -->
-  <div id="authModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-6 rounded-3xl max-w-sm w-full space-y-4 border-rose-500/40 max-h-[90vh] overflow-y-auto">
-      <div class="text-center space-y-1">
-        <i class="fa-solid fa-heart text-rose-500 text-3xl heart-glow"></i>
-        <h2 id="authTitle" class="font-bold text-xl text-rose-300">Welcome to HeartSync</h2>
-        <p class="text-xs text-gray-300">Sign up now & get <b class="text-amber-300">100 Coins Signup Bonus!</b></p>
-      </div>
-
-      <!-- Sign Up Form -->
-      <div id="signupFormFields" class="space-y-2.5 text-xs">
-        <div class="grid grid-cols-2 gap-2">
-          <input type="text" id="regFirstName" placeholder="First Name" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-          <input type="text" id="regLastName" placeholder="Last Name" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        </div>
-        <input type="text" id="regUsername" placeholder="Username (Unique ID)" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        <input type="tel" id="regPhone" placeholder="Phone Number" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="text-[10px] text-gray-300 block mb-1">My Gender:</label>
-            <select id="regGender" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-[10px] text-gray-300 block mb-1">Searching For:</label>
-            <select id="regLookingFor" class="w-full bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
-              <option value="All" selected>All</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <input type="number" id="regAge" placeholder="Age (e.g. 22)" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-          <input type="password" id="regPassword" placeholder="Password" class="bg-black/60 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        </div>
-
-        <button type="button" onclick="submitRegistration()" class="w-full py-2.5 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white shadow-lg cursor-pointer">Complete Sign Up (+100 Coins)</button>
-        <p class="text-center text-[10px] text-gray-400 pt-1">Already registered? <span onclick="toggleAuthMode('login')" class="text-amber-300 underline cursor-pointer">Login here</span></p>
-      </div>
-
-      <!-- Login Form -->
-      <div id="loginFormFields" class="space-y-3 text-xs hidden">
-        <input type="text" id="logUsername" placeholder="Username" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
-        <input type="password" id="logPassword" placeholder="Password" class="w-full bg-black/60 border border-white/20 rounded-lg p-2.5 text-rose-200 outline-none">
-        <button type="button" onclick="submitLogin()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-rose-600 font-bold rounded-lg text-white shadow-lg cursor-pointer">Login to Account</button>
-        <p class="text-center text-[10px] text-gray-400 pt-1">New user? <span onclick="toggleAuthMode('signup')" class="text-rose-300 underline cursor-pointer">Sign up</span></p>
-      </div>
-    </div>
+<header>
+  <div class="brand">HeartSync</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="coinpill"><span id="coinVal">0</span> coins</div>
+    <button class="hbtn" id="btnRefresh" title="Refresh">&#8635;</button>
   </div>
+</header>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-40 glass-card px-4 py-3 flex items-center justify-between border-b border-rose-500/20">
-    <div class="flex items-center space-x-2">
-      <i class="fa-solid fa-heart text-rose-500 text-2xl heart-glow"></i>
-      <span class="font-bold text-xl tracking-wide bg-gradient-to-r from-rose-400 to-pink-500 bg-clip-text text-transparent">HeartSync</span>
-    </div>
-    
-    <div class="flex items-center space-x-3">
-      <div onclick="openModal('walletModal')" class="flex items-center bg-rose-950/60 border border-rose-500/40 px-3 py-1 rounded-full cursor-pointer hover:bg-rose-900/60 transition text-xs">
-        <i class="fa-solid fa-coins text-amber-400 mr-1.5"></i>
-        <div>
-          <span id="userCoinsDisplay" class="font-bold text-amber-300">0</span> <span class="text-[10px] text-gray-300">(<span id="userUsdDisplay">$0.00</span>)</span>
-        </div>
-      </div>
+<main id="stage" class="wrap" style="padding-top:14px"></main>
 
-      <button onclick="logoutUser()" title="Logout" class="p-2 text-rose-400 hover:text-white transition cursor-pointer">
-        <i class="fa-solid fa-right-from-bracket text-lg"></i>
-      </button>
+<nav id="nav" class="hide">
+  <button data-tab="discover" class="on"><span class="ico">&#128293;</span>Discover</button>
+  <button data-tab="chats"><span class="ico">&#128172;</span>Chats</button>
+  <button data-tab="wallet"><span class="ico">&#128176;</span>Wallet</button>
+  <button data-tab="me"><span class="ico">&#128100;</span>Profile</button>
+  <button data-tab="admin" id="navAdmin" class="hide"><span class="ico">&#128737;</span>Admin</button>
+</nav>
 
-      <button onclick="verifyAndOpenAdmin()" class="p-2 text-rose-300 hover:text-white transition cursor-pointer">
-        <i class="fa-solid fa-shield-halved text-lg"></i>
-      </button>
-    </div>
-  </header>
+<script>
+/* ============================================================
+   HeartSync mini app - the bot is the database.
+   Every call goes to this user's private API link.
+   ============================================================ */
+var QS = new URLSearchParams(location.search);
+var API = QS.get('api') || '';
+var ME = null;
+var TAB = QS.get('tab') || 'discover';
+var FEED = [];
+var FEED_FILTER = { category: 'All', gender: 'All' };
+var OPEN_CHAT = null;
+var CHAT_TIMER = null;
+var ADMIN_TAB = 'stats';
+var AS_PROFILE = null;
+var SU = { name:'', age:'', gender:'Male', looking:'Female', category:'Dating', city:'', bio:'' };
+var PICK_SLOT = 1;
+var UTIMER = null;
 
-  <!-- Filter Controls -->
-  <section class="p-4 max-w-md mx-auto space-y-3" id="filterSection">
-    <div class="flex rounded-xl bg-black/40 p-1 border border-white/10 text-xs">
-      <button onclick="setMode('Dating')" id="mode-Dating" class="flex-1 py-2 rounded-lg font-semibold bg-rose-600 text-white transition cursor-pointer">Dating 💕</button>
-      <button onclick="setMode('Friendship')" id="mode-Friendship" class="flex-1 py-2 rounded-lg font-semibold text-gray-400 hover:text-white transition cursor-pointer">Friendship 🤝</button>
-      <button onclick="setMode('Blind Date')" id="mode-Blind Date" class="flex-1 py-2 rounded-lg font-semibold text-gray-400 hover:text-white transition cursor-pointer">Blind Date 🎭</button>
-    </div>
+function el(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function money(n){ return Number(n || 0).toLocaleString('en-US'); }
+function when(ts){
+  if (!ts) return '';
+  var d = new Date(Number(ts) * 1000);
+  return d.toLocaleDateString(undefined,{day:'2-digit',month:'short'}) + ' ' +
+         d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+}
+function initial(n){ var s = String(n || '?').trim(); return (s[0] || '?').toUpperCase(); }
 
-    <div class="grid grid-cols-2 gap-2 text-xs">
-      <select id="genderFilter" onchange="renderProfiles()" class="bg-black/50 border border-white/10 rounded-lg p-2 text-rose-200 outline-none">
-        <option value="All">Looking For: All</option>
-        <option value="Female">Female</option>
-        <option value="Male">Male</option>
-        <option value="Other">Other</option>
-      </select>
-      <div class="flex items-center bg-black/50 border border-white/10 rounded-lg px-2">
-        <span class="text-gray-400 mr-1">Max Age:</span>
-        <input type="range" id="ageSlider" min="18" max="60" value="40" oninput="updateAgeLabel(this.value)" class="w-full accent-rose-500">
-        <span id="ageLabel" class="ml-1 text-rose-300 font-bold">40</span>
-      </div>
-    </div>
-  </section>
+function toast(msg, ms){
+  var d = document.createElement('div');
+  d.className = 'toast'; d.innerHTML = msg;
+  document.body.appendChild(d);
+  setTimeout(function(){ d.style.opacity = '0'; d.style.transition = 'opacity .3s'; }, (ms || 2600) - 300);
+  setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, ms || 2600);
+}
 
-  <!-- MAIN APP VIEWS -->
-  <!-- 1. DISCOVER / SWIPE FEED SECTION -->
-  <main class="max-w-md mx-auto px-4" id="mainAppSection">
-    <div id="cardStack" class="relative min-h-[460px]"></div>
+async function post(payload){
+  if (!API) throw new Error('This page must be opened from the bot.');
+  var r = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {})
+  });
+  if (!r.ok) throw new Error('Server error ' + r.status);
+  var j = await r.json();
+  if (j && j.ok === true && j.result && typeof j.result === 'object') return j.result;
+  if (j && typeof j.ok !== 'undefined') return j;
+  return j;
+}
 
-    <!-- Swipe & Chat Action Bar -->
-    <div class="flex items-center justify-around mt-4 max-w-xs mx-auto">
-      <button onclick="swipe('dislike')" class="w-14 h-14 rounded-full glass-card border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg cursor-pointer">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-      <button onclick="openChatWithCurrentProfile()" class="w-16 h-16 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white flex items-center justify-center text-2xl shadow-xl hover:scale-105 transition cursor-pointer">
-        <i class="fa-solid fa-comments"></i>
-      </button>
-      <button onclick="swipe('like')" class="w-14 h-14 rounded-full glass-card border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-xl transition shadow-lg cursor-pointer">
-        <i class="fa-solid fa-heart"></i>
-      </button>
-    </div>
-  </main>
+function setCoins(n){
+  ME = ME || {};
+  ME.coins = Number(n || 0);
+  if (el('coinVal')) el('coinVal').textContent = money(ME.coins);
+}
+function spin(){ el('stage').innerHTML = '<div class="spin"></div>'; }
+function header(title, sub, right){
+  return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px">'
+    + '<div><div class="h1">' + esc(title) + '</div>'
+    + (sub ? '<div class="sub">' + esc(sub) + '</div>' : '') + '</div>'
+    + (right || '') + '</div>';
+}
 
-  <!-- DETAILED PUBLIC PROFILE VIEW MODAL -->
-  <div id="publicProfileModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-5 rounded-3xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto relative border-rose-500/40">
-      <button onclick="closeModal('publicProfileModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div id="pubProfileContent" class="space-y-3">
-        <!-- Rendered dynamically -->
-      </div>
-    </div>
-  </div>
+function openModal(html){
+  closeModal();
+  var d = document.createElement('div');
+  d.className = 'modal'; d.id = 'theModal';
+  d.innerHTML = '<div class="box"><div class="top"><b>HeartSync</b>'
+    + '<button class="x" onclick="closeModal()">&times;</button></div>' + html + '</div>';
+  document.body.appendChild(d);
+  return d;
+}
+function closeModal(){
+  var m = el('theModal');
+  if (m && m.parentNode) m.parentNode.removeChild(m);
+}
 
-  <!-- 2. DEDICATED CHAT PAGE SECTION -->
-  <section id="chatPageSection" class="hidden max-w-md mx-auto px-4 space-y-3">
-    <div class="glass-card p-3 rounded-2xl flex items-center justify-between border-rose-500/30">
-      <div class="flex items-center space-x-3">
-        <button onclick="switchTab('feed')" class="text-rose-400 hover:text-white cursor-pointer"><i class="fa-solid fa-arrow-left text-lg"></i></button>
-        <img id="chatHeaderImg" src="" class="w-10 h-10 rounded-full object-cover border border-rose-500">
-        <div>
-          <h3 id="chatHeaderName" class="font-bold text-sm">Chat</h3>
-          <p class="text-[10px] text-emerald-400">Online • 5 coins per message (Auto-charged)</p>
-        </div>
-      </div>
-    </div>
+function compress(file, maxSide, quality){
+  return new Promise(function(resolve){
+    var img = new Image();
+    var fr = new FileReader();
+    fr.onload = function(e){ img.src = e.target.result; };
+    img.onerror = function(){ resolve(''); };
+    img.onload = function(){
+      var w = img.width, h = img.height;
+      var scale = Math.min(1, maxSide / Math.max(w, h));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(w * scale));
+      c.height = Math.max(1, Math.round(h * scale));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    fr.readAsDataURL(file);
+  });
+}
 
-    <div id="chatMessagesContainer" class="glass-card p-3 rounded-2xl h-80 overflow-y-auto hide-scrollbar space-y-2 text-xs flex flex-col">
-      <div class="bg-white/10 p-2 rounded-xl self-start max-w-[80%]">Hi! Let's connect and chat 💕 (Costs 5 coins per message)</div>
-    </div>
+async function uploadPhoto(file, slot, forUid){
+  var full = await compress(file, 720, 0.6);
+  var thumb = await compress(file, 260, 0.5);
+  if (!full || full.length < 200) throw new Error('Could not read that photo.');
+  var payload = { slot: slot, full: full, thumb: thumb };
+  if (forUid){ payload.action = 'a_fake_photo'; payload.uid = forUid; }
+  else { payload.action = 'save_photo'; }
+  return post(payload);
+}
 
-    <div class="flex space-x-2">
-      <input type="text" id="chatInputText" placeholder="Type message (Costs 5 coins)..." class="flex-1 bg-black/60 border border-white/20 rounded-xl p-2.5 text-xs text-rose-200 outline-none">
-      <button onclick="sendChatMessage()" class="bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer"><i class="fa-solid fa-paper-plane"></i></button>
-    </div>
-  </section>
+/* ---------------- boot ---------------- */
+async function boot(){
+  if (!API){
+    el('stage').innerHTML = '<div class="glass" style="padding:24px">'
+      + '<div style="font-size:40px;text-align:center">&#128149;</div>'
+      + '<div class="h1 center" style="margin-top:10px">Open this from the bot</div>'
+      + '<p class="sub center" style="margin-top:8px">Go back to Telegram and press the '
+      + '<b>Open HeartSync</b> button. That link is private to your account.</p></div>';
+    return;
+  }
+  spin();
+  try {
+    var r = await post({ action: 'boot' });
+    if (!r.ok) throw new Error(r.error || 'Could not load.');
+    ME = r;
+    setCoins(r.coins);
+    el('nav').classList.remove('hide');
+    if (r.is_admin) el('navAdmin').classList.remove('hide');
+    else el('navAdmin').classList.add('hide');
+    if (!r.registered){ renderWelcome(); return; }
+    go(TAB);
+  } catch(e){
+    el('stage').innerHTML = '<div class="glass" style="padding:20px">'
+      + '<div class="warn">Could not reach the server.<br>' + esc(e.message) + '</div>'
+      + '<button class="btn" onclick="boot()">Try again</button></div>';
+  }
+}
 
-  <!-- SECURE ADMIN DASHBOARD -->
-  <section id="adminSection" class="hidden max-w-md mx-auto px-4 space-y-4">
-    <div class="flex items-center justify-between glass-card p-3 rounded-xl border-amber-500/30">
-      <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-user-shield text-amber-400 text-xl"></i>
-        <div>
-          <h2 class="font-bold text-amber-300 text-sm">Admin Control Center</h2>
-          <p id="adminRoleDisplay" class="text-[10px] text-gray-300">Active Role</p>
-        </div>
-      </div>
-      <button onclick="closeAdminPanel()" class="text-xs bg-rose-600 px-2 py-1 rounded text-white cursor-pointer">Exit</button>
-    </div>
+/* ---------------- welcome ---------------- */
+function renderWelcome(){
+  var bonus = (ME.settings && ME.settings.signup_bonus) || 100;
+  el('stage').innerHTML = '<div class="glass" style="padding:20px">'
+    + '<div class="center" style="font-size:44px">&#128149;</div>'
+    + '<div class="h1 center" style="margin-top:6px">Welcome to HeartSync</div>'
+    + '<p class="sub center" style="margin:8px 0 16px">Meet real people. Create your profile and get '
+    + '<b style="color:#fcd34d">' + esc(bonus) + ' coins</b> free.</p>'
+    + '<div class="glass" style="padding:12px;background:rgba(244,63,94,.1)">'
+    + '<div class="sub" style="color:#fda4af;font-weight:700;margin-bottom:6px">What it costs</div>'
+    + '<div class="kv"><span>Browsing, likes, follows</span><span style="color:#6ee7b7">Free</span></div>'
+    + '<div class="kv"><span>Send a message</span><span>' + esc(ME.settings ? ME.settings.msg_price : 5) + ' coins</span></div>'
+    + '<div class="kv" style="border:0"><span>Write a comment</span><span>' + esc(ME.settings ? ME.settings.comment_price : 2) + ' coins</span></div>'
+    + '</div>'
+    + '<button class="btn" style="margin-top:16px" onclick="renderSignup(1)">Create my profile</button>'
+    + (ME.owner_set ? '' : '<button class="btn ghost" style="margin-top:8px" onclick="claimOwner()">This is my app - claim owner</button>')
+    + '</div>';
+}
 
-    <div class="glass-card p-4 rounded-xl space-y-3">
-      <h3 class="font-semibold text-rose-300 text-xs border-b border-white/10 pb-2"><i class="fa-solid fa-users mr-1"></i> Registered Users & Full Profile Control</h3>
-      <div id="adminUserList" class="space-y-2 max-h-56 overflow-y-auto hide-scrollbar text-xs"></div>
-    </div>
-  </section>
+async function claimOwner(){
+  try {
+    var r = await post({ action: 'a_claim' });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('You are now the owner. Open Admin.');
+    await boot();
+  } catch(e){ toast('Could not claim: ' + esc(e.message)); }
+}
 
-  <!-- Bottom Nav -->
-  <nav class="fixed bottom-0 left-0 right-0 glass-card border-t border-rose-500/20 py-3 px-6 flex justify-around z-40 max-w-md mx-auto">
-    <button onclick="switchTab('feed')" id="nav-feed" class="text-rose-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-fire text-lg"></i><span class="text-[10px] mt-1">Discover</span></button>
-    <button onclick="claimDailyBonus()" class="text-amber-400 hover:text-amber-300 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-gift text-lg"></i><span class="text-[10px] mt-1">Daily +5</span></button>
-    <button onclick="openProfileModal()" class="text-gray-400 hover:text-rose-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-user-pen text-lg"></i><span class="text-[10px] mt-1">My Profile</span></button>
-    <button onclick="openModal('walletModal')" class="text-gray-400 hover:text-amber-400 flex flex-col items-center cursor-pointer"><i class="fa-solid fa-wallet text-lg"></i><span class="text-[10px] mt-1">Wallet</span></button>
-  </nav>
+function renderSignup(step){
+  var bar = '<div class="steps">' + [1,2,3].map(function(i){
+    return '<i class="' + (i <= step ? 'on' : '') + '"></i>';
+  }).join('') + '</div>';
+  var body = '';
+  if (step === 1){
+    body = '<div class="field"><label class="lbl">YOUR NAME</label>'
+      + '<input id="suName" placeholder="First name" value="' + esc(SU.name) + '"></div>'
+      + '<div class="field"><label class="lbl">AGE</label>'
+      + '<input id="suAge" type="number" inputmode="numeric" placeholder="e.g. 24" value="' + esc(SU.age) + '"></div>'
+      + '<div class="field"><label class="lbl">CITY (optional)</label>'
+      + '<input id="suCity" placeholder="Kathmandu" value="' + esc(SU.city) + '"></div>'
+      + '<button class="btn" onclick="suNext(2)">Continue</button>';
+  }
+  if (step === 2){
+    body = '<div class="h2">I am a...</div><div id="gWrap">'
+      + ['Male','Female','Other'].map(function(v){
+          return '<button class="btn ' + (SU.gender === v ? '' : 'ghost')
+            + '" style="margin-bottom:6px" onclick="pickG(this)" data-g="' + v + '">' + v + '</button>';
+        }).join('') + '</div>'
+      + '<div class="h2" style="margin-top:14px">I want to meet...</div><div id="lWrap">'
+      + ['Female','Male','Other','All'].map(function(v){
+          return '<button class="btn ' + (SU.looking === v ? '' : 'ghost')
+            + '" style="margin-bottom:6px" onclick="pickL(this)" data-l="' + v + '">' + v + '</button>';
+        }).join('') + '</div>'
+      + '<button class="btn" style="margin-top:12px" onclick="suNext(3)">Continue</button>';
+  }
+  if (step === 3){
+    body = '<div class="h2">What are you here for?</div>'
+      + '<select id="suCat" style="margin-bottom:12px">'
+      + ['Dating','Friendship','Girlfriend','Boyfriend','Chat','Marriage'].map(function(c){
+          return '<option value="' + c + '"' + (SU.category === c ? ' selected' : '') + '>' + c + '</option>';
+        }).join('') + '</select>'
+      + '<div class="field"><label class="lbl">ABOUT YOU (optional)</label>'
+      + '<textarea id="suBio" rows="3" placeholder="A line about yourself">' + esc(SU.bio) + '</textarea></div>'
+      + '<div class="warn">You must be 18 or older. Your name, age, city and photos are shown to other members.</div>'
+      + '<button class="btn" onclick="doSignup()" id="suBtn">Create my profile</button>';
+  }
+  el('stage').innerHTML = '<div class="glass" style="padding:18px">' + bar + body + '</div>';
+}
 
-  <!-- Profile Creation Modal -->
-  <div id="createProfileModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-3 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-white/10 pb-2">
-        <h3 class="font-bold text-lg text-rose-300"><i class="fa-solid fa-user-pen mr-2"></i>My Profile & Preferences</h3>
-        <button onclick="closeModal('createProfileModal')" class="text-gray-400 hover:text-white cursor-pointer">&times;</button>
-      </div>
-      <div class="space-y-2.5 text-xs">
-        <input type="text" id="profProfession" placeholder="Profession / Bio" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        <input type="text" id="profInstagram" placeholder="Instagram Handle" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-        
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="text-[10px] text-gray-300 block mb-1">My Gender:</label>
-            <select id="profGenderSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-[10px] text-gray-300 block mb-1">Searching For:</label>
-            <select id="profLookingForSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
-              <option value="Other">Other</option>
-              <option value="All">All</option>
-            </select>
-          </div>
-        </div>
+function pickG(b){
+  SU.gender = b.getAttribute('data-g');
+  var w = document.querySelectorAll('#gWrap .btn');
+  for (var i = 0; i < w.length; i++) w[i].className = 'btn ghost';
+  b.className = 'btn';
+}
+function pickL(b){
+  SU.looking = b.getAttribute('data-l');
+  var w = document.querySelectorAll('#lWrap .btn');
+  for (var i = 0; i < w.length; i++) w[i].className = 'btn ghost';
+  b.className = 'btn';
+}
+function suNext(step){
+  if (step === 2){
+    SU.name = (el('suName').value || '').trim();
+    SU.age = (el('suAge').value || '').trim();
+    SU.city = (el('suCity').value || '').trim();
+    if (SU.name.length < 2){ toast('Please write your name.'); return; }
+    var a = parseInt(SU.age, 10);
+    if (!a || a < 18 || a > 99){ toast('You must be 18 or older.'); return; }
+  }
+  renderSignup(step);
+}
 
-        <select id="profModeSelect" class="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-rose-200 outline-none">
-          <option value="Dating">Dating</option>
-          <option value="Friendship">Friendship</option>
-          <option value="Blind Date">Blind Date</option>
-        </select>
-        
-        <div>
-          <label class="block text-amber-300 font-semibold mb-1">Upload Profile Photos (1-10 Pics):</label>
-          <input type="file" id="profileImageFiles" accept="image/*" multiple onchange="handleImageFilesUpload(this)" class="w-full text-gray-400 text-xs bg-black/40 p-2 rounded-lg border border-white/20">
-          <p id="imageCountStatus" class="text-[10px] text-gray-400 mt-1">0 images selected</p>
-        </div>
+async function doSignup(){
+  SU.category = el('suCat').value;
+  SU.bio = (el('suBio').value || '').trim();
+  var b = el('suBtn'); b.disabled = true; b.textContent = 'Creating...';
+  try {
+    var r = await post({ action:'signup', name:SU.name, age:parseInt(SU.age,10),
+      gender:SU.gender, looking:SU.looking, category:SU.category, city:SU.city, bio:SU.bio });
+    if (!r.ok){
+      toast(esc(r.error)); b.disabled = false; b.textContent = 'Create my profile'; return;
+    }
+    setCoins(r.coins);
+    await boot();
+    toast('Profile created. You got ' + esc(r.bonus) + ' coins. Now add your photos.', 4200);
+    setTimeout(function(){ go('me'); }, 500);
+  } catch(e){
+    toast('Could not save: ' + esc(e.message));
+    b.disabled = false; b.textContent = 'Create my profile';
+  }
+}
 
-        <div id="imagePreviewContainer" class="grid grid-cols-5 gap-1 max-h-24 overflow-y-auto"></div>
+/* ---------------- router ---------------- */
+function go(tab){
+  if (!ME || !ME.registered){ renderWelcome(); return; }
+  TAB = tab;
+  var btns = document.querySelectorAll('#nav button');
+  for (var i = 0; i < btns.length; i++){
+    if (btns[i].getAttribute('data-tab') === tab) btns[i].classList.add('on');
+    else btns[i].classList.remove('on');
+  }
+  if (CHAT_TIMER){ clearInterval(CHAT_TIMER); CHAT_TIMER = null; }
+  if (tab === 'discover') renderDiscover();
+  if (tab === 'chats') renderChats();
+  if (tab === 'wallet') renderWallet();
+  if (tab === 'me') renderMe();
+  if (tab === 'admin') renderAdmin();
+}
+document.querySelectorAll('#nav button').forEach(function(b){
+  b.onclick = function(){ go(b.getAttribute('data-tab')); };
+});
+el('btnRefresh').onclick = function(){ boot(); };
 
-        <button type="button" onclick="saveUserProfilePhotos()" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 font-bold rounded-lg text-white cursor-pointer">Save Profile & Photos</button>
-      </div>
-    </div>
-  </div>
+/* ---------------- discover ---------------- */
+async function renderDiscover(){
+  el('stage').innerHTML = header('Discover', 'Tap a card to see everything',
+      '<button class="btn sm ghost" onclick="feedFilters()">Filter</button>')
+    + '<div style="display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;margin-bottom:8px">'
+    + '<span>' + esc(FEED_FILTER.category) + ' / ' + esc(FEED_FILTER.gender) + '</span>'
+    + '<span id="feedCount">loading...</span></div>'
+    + '<div id="feedBox"></div>';
+  try {
+    var r = await post({ action:'feed', category: FEED_FILTER.category,
+      gender: FEED_FILTER.gender, offset: 0 });
+    if (!r.ok){ el('feedBox').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
+    FEED = r.profiles || [];
+    setCoins(r.coins);
+    el('feedCount').textContent = FEED.length ? FEED.length + ' shown' : 'nobody yet';
+    drawFeed();
+  } catch(e){
+    el('feedBox').innerHTML = '<div class="warn">Could not load: ' + esc(e.message) + '</div>';
+  }
+}
 
-  <!-- Wallet Modal -->
-  <div id="walletModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card p-6 rounded-2xl max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-white/10 pb-2">
-        <h3 class="font-bold text-lg text-amber-300"><i class="fa-solid fa-wallet mr-2"></i>Coin Wallet ($1 = 50 Coins)</h3>
-        <button onclick="closeModal('walletModal')" class="text-gray-400 hover:text-white cursor-pointer">&times;</button>
-      </div>
+function drawFeed(){
+  var box = el('feedBox');
+  if (!box) return;
+  if (!FEED.length){
+    box.innerHTML = '<div class="empty glass" style="padding:34px 20px">'
+      + '<div style="font-size:34px;margin-bottom:8px">&#128564;</div>'
+      + 'No profiles match this filter yet.<br>Try another category, or check back soon.'
+      + '<div style="margin-top:14px"><button class="btn ghost" onclick="feedFilters()">Change filter</button></div></div>';
+    return;
+  }
+  var p = FEED[0];
+  var img = p.thumb
+    ? '<img class="photo" src="' + p.thumb + '" alt="">'
+    : '<div class="noPhoto">' + esc(initial(p.name)) + '</div>';
+  box.innerHTML = '<div class="card" onclick="openProfile(\'' + esc(p.uid) + '\')">' + img
+    + '<div class="grad">'
+    + '<div class="nm">' + esc(p.name) + ', ' + esc(p.age) + '</div>'
+    + '<div class="meta">' + esc(p.gender) + ' / ' + esc(p.category)
+    + (p.city ? ' / ' + esc(p.city) : '') + '</div>'
+    + (p.bio ? '<div class="bio">' + esc(p.bio) + '</div>' : '')
+    + '<div class="pillrow"><span class="pill">' + (p.photos || 0) + ' photos</span>'
+    + (p.liked ? '<span class="pill on">liked</span>' : '')
+    + (p.following ? '<span class="pill on">following</span>' : '')
+    + '</div></div></div>'
+    + '<div class="acts">'
+    + '<button class="act no" onclick="doPass(\'' + esc(p.uid) + '\')">&#10005;</button>'
+    + '<button class="act star" onclick="doFollow(\'' + esc(p.uid) + '\')">&#9733;</button>'
+    + '<button class="act big" onclick="openProfile(\'' + esc(p.uid) + '\')">&#128065;</button>'
+    + '<button class="act heart" onclick="doLike(\'' + esc(p.uid) + '\')">&#9829;</button>'
+    + '</div>'
+    + '<div class="row" style="margin-top:10px">'
+    + '<button class="btn soft" onclick="startChat(\'' + esc(p.uid) + '\')">Message / '
+    + esc(ME.settings ? ME.settings.msg_price : 5) + '</button>'
+    + '<button class="btn ghost" onclick="openProfile(\'' + esc(p.uid) + '\')">Comment</button>'
+    + '</div>'
+    + (FEED.length > 1 ? '<p class="sub center" style="margin-top:10px">' + FEED.length
+        + ' waiting - skip or like this one to move on</p>' : '');
+}
 
-      <div class="bg-rose-950/40 p-3 rounded-xl border border-rose-500/20 text-center">
-        <p class="text-xs text-gray-400">Username: <b id="displayUsername" class="text-amber-200"></b></p>
-        <p class="text-xs text-gray-400 mt-1">Available Balance</p>
-        <p id="modalCoinBalance" class="text-2xl font-bold text-amber-300">0 Coins</p>
-        <p id="modalUsdBalance" class="text-xs text-gray-300 mt-0.5">($0.00 USD)</p>
-      </div>
-      <button onclick="closeModal('walletModal')" class="w-full py-2 bg-amber-600 font-bold rounded-lg text-white text-xs cursor-pointer">Close Wallet</button>
-    </div>
-  </div>
+function feedFilters(){
+  var cats = ['All','Dating','Friendship','Girlfriend','Boyfriend','Chat','Marriage'];
+  var gens = ['All','Female','Male','Other'];
+  openModal('<div class="h2">Category</div><div id="fc">'
+    + cats.map(function(c){
+        return '<button class="btn ' + (FEED_FILTER.category === c ? '' : 'ghost')
+          + '" style="margin-bottom:6px" data-v="' + c + '" onclick="setF(\'category\',this)">' + c + '</button>';
+      }).join('') + '</div>'
+    + '<div class="h2" style="margin-top:12px">Show me</div><div id="fg">'
+    + gens.map(function(g){
+        return '<button class="btn ' + (FEED_FILTER.gender === g ? '' : 'ghost')
+          + '" style="margin-bottom:6px" data-v="' + g + '" onclick="setF(\'gender\',this)">' + g + '</button>';
+      }).join('') + '</div>'
+    + '<button class="btn" style="margin-top:12px" onclick="closeModal();renderDiscover()">Show profiles</button>');
+}
+function setF(kind, b){
+  FEED_FILTER[kind] = b.getAttribute('data-v');
+  var wrap = el(kind === 'category' ? 'fc' : 'fg');
+  if (!wrap) return;
+  var all = wrap.querySelectorAll('.btn');
+  for (var i = 0; i < all.length; i++) all[i].className = 'btn ghost';
+  b.className = 'btn';
+}
 
-  <script>
-    const SUPER_ADMIN_ID = "8238330395";
-    let adminRegistry = JSON.parse(localStorage.getItem("heartsync_admins") || "{}");
-    let registeredUsers = JSON.parse(localStorage.getItem("heartsync_registered_users") || "{}");
-    let activeSessionUsername = localStorage.getItem("heartsync_active_session") || null;
+async function doLike(uid){
+  try {
+    var r = await post({ action:'like', uid:uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast(r.mutual ? 'It is a match - they liked you too!' : 'Liked!');
+    FEED = FEED.filter(function(x){ return x.uid !== uid; });
+    drawFeed();
+  } catch(e){ toast('Failed: ' + esc(e.message)); }
+}
+async function doPass(uid){
+  try {
+    await post({ action:'pass', uid:uid });
+    FEED = FEED.filter(function(x){ return x.uid !== uid; });
+    drawFeed();
+  } catch(e){ toast('Failed: ' + esc(e.message)); }
+}
+async function doFollow(uid){
+  var p = null;
+  for (var i = 0; i < FEED.length; i++) if (FEED[i].uid === uid) p = FEED[i];
+  var on = p && p.following;
+  try {
+    var r = await post({ action: on ? 'unfollow' : 'follow', uid:uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    if (p) p.following = r.following;
+    toast(r.following ? 'Following' : 'Unfollowed');
+    drawFeed();
+  } catch(e){ toast('Failed: ' + esc(e.message)); }
+}
 
-    if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
-      document.getElementById('authModal').classList.remove('hidden');
+/* ---------------- profile view ---------------- */
+async function openProfile(uid){
+  openModal('<div class="spin"></div>');
+  try {
+    var r = await post({ action:'profile', uid:uid });
+    if (!r.ok){ closeModal(); toast(esc(r.error)); return; }
+    setCoins(r.coins);
+    var gal = '<div class="warn">No photos yet.</div>';
+    if (r.photos && r.photos.length){
+      gal = '<div class="gallery">' + r.photos.map(function(s){
+        return '<img data-slot="' + s + '" src="">';
+      }).join('') + '</div>';
+    }
+    var cm = '<p class="sub">No comments yet. Yours would be the first.</p>';
+    if ((r.comments || []).length){
+      cm = r.comments.map(function(c){
+        return '<div class="cmt"><b>' + esc(c.n || 'Member') + '</b> ' + esc(c.txt)
+          + '<div class="who">' + when(c.ts) + '</div></div>';
+      }).join('');
+    }
+    openModal('<div style="font-size:22px;font-weight:800;color:#fda4af">' + esc(r.name) + ', ' + esc(r.age) + '</div>'
+      + '<div class="sub" style="margin-bottom:10px">' + esc(r.gender) + ' / ' + esc(r.category)
+      + (r.city ? ' / ' + esc(r.city) : '') + ' / ' + (r.fans || 0) + ' likes</div>'
+      + gal
+      + (r.bio ? '<p class="sub" style="margin-top:10px">' + esc(r.bio) + '</p>' : '')
+      + '<div class="row" style="margin-top:12px">'
+      + '<button class="btn soft" onclick="startChat(\'' + esc(uid) + '\')">Message / ' + esc(r.msg_price) + '</button>'
+      + '<button class="btn ' + (r.liked ? 'green' : 'ghost') + '" onclick="likeFromModal(\'' + esc(uid) + '\')">'
+      + (r.liked ? 'Liked' : 'Like') + '</button></div>'
+      + '<div class="row" style="margin-top:8px">'
+      + '<button class="btn ghost" onclick="followFromModal(\'' + esc(uid) + '\')">'
+      + (r.following ? 'Following' : 'Follow') + '</button>'
+      + '<button class="btn red" onclick="passFromModal(\'' + esc(uid) + '\')">Skip</button></div>'
+      + '<div class="sect" style="margin-top:16px"><div class="h2">Comments</div>' + cm
+      + '<div class="row" style="margin-top:8px;align-items:center">'
+      + '<input id="cmTxt" placeholder="Write a comment..." style="flex:1">'
+      + '<button class="btn sm" style="flex:none" onclick="postComment(\'' + esc(uid) + '\')">Post / '
+      + esc(r.comment_price) + '</button></div></div>');
+
+    if (r.photos && r.photos.length){
+      for (var i = 0; i < r.photos.length; i++){
+        try {
+          var im = await post({ action:'img', uid:uid, slot:r.photos[i], size:'f' });
+          if (im.ok && im.data){
+            var nodes = document.querySelectorAll('[data-slot="' + r.photos[i] + '"]');
+            for (var k = 0; k < nodes.length; k++) nodes[k].src = im.data;
+          }
+        } catch(e2){}
+      }
+    }
+  } catch(e){
+    closeModal(); toast('Could not open: ' + esc(e.message));
+  }
+}
+
+async function likeFromModal(uid){
+  try {
+    var r = await post({ action:'like', uid:uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast(r.mutual ? 'It is a match - they liked you too!' : 'Liked!');
+    closeModal();
+    FEED = FEED.filter(function(x){ return x.uid !== uid; });
+    drawFeed();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function followFromModal(uid){
+  try {
+    var r = await post({ action:'follow', uid:uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Following');
+    closeModal(); renderDiscover();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function passFromModal(uid){
+  try {
+    await post({ action:'pass', uid:uid });
+    closeModal();
+    FEED = FEED.filter(function(x){ return x.uid !== uid; });
+    drawFeed();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function postComment(uid){
+  var t = (el('cmTxt').value || '').trim();
+  if (!t){ toast('Write something first.'); return; }
+  try {
+    var r = await post({ action:'comment', uid:uid, text:t });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    setCoins(r.coins);
+    toast('Comment posted. -' + r.charged + ' coins');
+    openProfile(uid);
+  } catch(e){ toast(esc(e.message)); }
+}
+
+/* ---------------- chats ---------------- */
+async function renderChats(){
+  el('stage').innerHTML = header('Chats', 'Only you can see these') + '<div id="chatsBox"><div class="spin"></div></div>';
+  try {
+    var r = await post({ action:'threads' });
+    if (!r.ok){ el('chatsBox').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
+    setCoins(r.coins);
+    var rows = r.threads || [];
+    if (!rows.length){
+      el('chatsBox').innerHTML = '<div class="empty glass" style="padding:34px 20px">'
+        + 'No conversations yet.'
+        + '<div style="margin-top:14px"><button class="btn ghost" onclick="go(\'discover\')">Find someone</button></div></div>';
+      return;
+    }
+    el('chatsBox').innerHTML = '<p class="sub" style="margin-bottom:8px">A message costs '
+      + esc(r.msg_price) + ' coins.</p><div class="list">'
+      + rows.map(function(t){
+          var av = t.thumb ? '<img class="avatar" src="' + t.thumb + '">'
+                           : '<div class="avatar">' + esc(initial(t.name)) + '</div>';
+          return '<div class="item" onclick="openChat(\'' + esc(t.uid) + '\')">' + av
+            + '<div class="txt"><div class="nm">' + esc(t.name) + '</div>'
+            + '<div class="ms">' + esc(t.last || '') + '</div></div>'
+            + '<div style="font-size:9.5px;color:#9ca3af;text-align:right;flex:none">' + when(t.ts) + '</div></div>';
+        }).join('') + '</div>';
+  } catch(e){ el('chatsBox').innerHTML = '<div class="warn">' + esc(e.message) + '</div>'; }
+}
+
+async function startChat(uid){
+  closeModal();
+  await openChat(uid);
+}
+
+async function openChat(uid){
+  OPEN_CHAT = uid;
+  TAB = 'chats';
+  var btns = document.querySelectorAll('#nav button');
+  for (var i = 0; i < btns.length; i++){
+    if (btns[i].getAttribute('data-tab') === 'chats') btns[i].classList.add('on');
+    else btns[i].classList.remove('on');
+  }
+  el('stage').innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+    + '<button class="btn sm ghost" style="flex:none" onclick="go(\'chats\')">&larr;</button>'
+    + '<div id="chatHead" class="h2" style="margin:0">Chat</div></div>'
+    + '<div class="glass" style="padding:0;overflow:hidden">'
+    + '<div class="chat" id="chatBox"><div class="spin"></div></div>'
+    + '<div class="typing" style="padding:8px;border-top:1px solid rgba(255,255,255,.1)">'
+    + '<input id="chatTxt" placeholder="Write a message..." style="flex:1">'
+    + '<button class="btn sm" style="flex:none" onclick="sendMsg()">Send</button>'
+    + '</div></div><p class="sub center" style="margin-top:8px" id="chatPrice"></p>';
+  el('chatTxt').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMsg(); });
+  await loadChat();
+  if (CHAT_TIMER) clearInterval(CHAT_TIMER);
+  CHAT_TIMER = setInterval(loadChat, 9000);
+}
+
+async function loadChat(){
+  if (!OPEN_CHAT) return;
+  try {
+    var r = await post({ action:'chat', uid:OPEN_CHAT });
+    if (!r.ok) return;
+    setCoins(r.coins);
+    if (el('chatHead')) el('chatHead').textContent = r.name;
+    if (el('chatPrice')) el('chatPrice').textContent = 'Each message you send costs ' + r.msg_price + ' coins.';
+    var box = el('chatBox');
+    if (!box) return;
+    if (!(r.messages || []).length){
+      box.innerHTML = '<div class="empty" style="padding:26px 12px">Say hello to ' + esc(r.name) + '.</div>';
     } else {
-      document.getElementById('authModal').classList.add('hidden');
-      initUserSession(activeSessionUsername);
+      box.innerHTML = r.messages.map(function(m){
+        return '<div class="bub ' + (m.me ? 'me' : 'them') + '">' + esc(m.txt)
+          + '<span class="t">' + when(m.ts) + '</span></div>';
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+  } catch(e){}
+}
+
+async function sendMsg(){
+  var inp = el('chatTxt');
+  var t = (inp.value || '').trim();
+  if (!t || !OPEN_CHAT) return;
+  inp.value = '';
+  try {
+    var r = await post({ action:'send', uid:OPEN_CHAT, text:t });
+    if (!r.ok){ toast(esc(r.error)); inp.value = t; return; }
+    setCoins(r.coins);
+    await loadChat();
+  } catch(e){ toast('Failed: ' + esc(e.message)); inp.value = t; }
+}
+
+/* ---------------- wallet ---------------- */
+function badge(st){
+  var s = String(st || '');
+  var cls = (s === 'approved' || s === 'paid') ? 'g' : (s === 'pending' ? 'a' : 'r');
+  return ' <span class="badge ' + cls + '">' + esc(s) + '</span>';
+}
+
+async function renderWallet(){
+  el('stage').innerHTML = header('Wallet', 'Deposits and withdrawals') + '<div id="wBox"><div class="spin"></div></div>';
+  try {
+    var r = await post({ action:'wallet' });
+    if (!r.ok){ el('wBox').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
+    setCoins(r.coins);
+    var usedMsg = '';
+    if (r.withdraws_used >= r.max_withdraws){
+      usedMsg = '<div class="warn">You already used your payout (' + r.withdraws_used + ' of '
+        + r.max_withdraws + '). Your coins stay on the platform for chatting.</div>';
+    }
+    var depList = (r.deposits || []).length
+      ? r.deposits.map(function(d){
+          return '<div class="kv"><span>' + when(d.ts) + ' / ' + esc(d.m) + '</span><span>'
+            + money(d.amt) + badge(d.st) + '</span></div>';
+        }).join('')
+      : '<p class="sub">Nothing yet.</p>';
+    var wdList = (r.withdraws || []).length
+      ? r.withdraws.map(function(w){
+          return '<div class="kv"><span>' + when(w.ts) + ' / ' + esc(w.m) + '</span><span>'
+            + money(w.amt) + badge(w.st) + '</span></div>';
+        }).join('')
+      : '<p class="sub">Nothing yet.</p>';
+    var methods = r.methods || [];
+    var wd = r.wd || {};
+
+    el('wBox').innerHTML = '<div class="glass" style="padding:16px;text-align:center;margin-bottom:12px">'
+      + '<div class="sub">Your balance</div>'
+      + '<div style="font-size:36px;font-weight:800;color:#fcd34d;margin:4px 0">' + money(r.coins) + '</div>'
+      + '<div class="sub">' + esc(r.rate) + ' coins = 1 payout unit</div></div>'
+
+      + '<div class="glass" style="padding:14px;margin-bottom:12px">'
+      + '<div class="h2">Add coins</div>'
+      + methods.map(function(m){
+          return '<div class="item" style="margin-bottom:6px"><div class="txt">'
+            + '<div class="nm">' + esc(m.name) + '</div>'
+            + '<div class="ms" style="white-space:normal">' + esc(m.detail) + '</div></div></div>';
+        }).join('')
+      + '<div class="field" style="margin-top:10px"><label class="lbl">AMOUNT YOU PAID</label>'
+      + '<input id="depAmt" type="number" inputmode="numeric" placeholder="e.g. 100"></div>'
+      + '<div class="field"><label class="lbl">PAYMENT METHOD</label><select id="depMethod">'
+      + methods.map(function(m){
+          return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>';
+        }).join('') + '</select></div>'
+      + '<div class="field"><label class="lbl">TRANSACTION ID / REFERENCE</label>'
+      + '<input id="depRef" placeholder="Code from your payment app"></div>'
+      + '<div class="field"><label class="lbl">SCREENSHOT OF THE PAYMENT</label>'
+      + '<input id="depShot" type="file" accept="image/*"></div>'
+      + '<button class="btn" onclick="submitDeposit()" id="depBtn">Send for approval</button></div>'
+
+      + '<div class="glass" style="padding:14px;margin-bottom:12px">'
+      + '<div class="h2">Withdraw</div>' + usedMsg
+      + '<div class="sub" style="margin-bottom:8px">Minimum ' + esc(r.min_withdraw)
+      + ' coins. Payout is limited to ' + esc(r.max_withdraws) + ' per account.</div>'
+      + '<div class="field"><label class="lbl">AMOUNT</label>'
+      + '<input id="wdAmt" type="number" inputmode="numeric" placeholder="' + esc(r.min_withdraw) + '"></div>'
+      + '<div class="field"><label class="lbl">PAY TO (your number / account)</label>'
+      + '<input id="wdAcct" placeholder="98XXXXXXXX" value="' + esc(wd.account || '') + '"></div>'
+      + '<div class="field"><label class="lbl">METHOD</label><select id="wdMethod">'
+      + methods.map(function(m){
+          return '<option value="' + esc(m.name) + '"' + (wd.method === m.name ? ' selected' : '') + '>'
+            + esc(m.name) + '</option>';
+        }).join('') + '</select></div>'
+      + '<button class="btn amber" onclick="submitWithdraw()" id="wdBtn"'
+      + (r.withdraws_used >= r.max_withdraws ? ' disabled' : '') + '>Request withdrawal</button></div>'
+
+      + '<div class="glass" style="padding:14px;margin-bottom:12px"><div class="h2">My deposits</div>'
+      + depList + '</div>'
+      + '<div class="glass" style="padding:14px"><div class="h2">My withdrawals</div>'
+      + wdList + '</div>';
+  } catch(e){ el('wBox').innerHTML = '<div class="warn">' + esc(e.message) + '</div>'; }
+}
+
+async function submitDeposit(){
+  var amt = parseInt(el('depAmt').value || '0', 10);
+  var method = el('depMethod').value;
+  var ref = (el('depRef').value || '').trim();
+  var file = el('depShot').files[0];
+  if (!amt || amt < 10){ toast('Enter the amount you paid.'); return; }
+  if (!file){ toast('Please attach the payment screenshot.'); return; }
+  var b = el('depBtn'); b.disabled = true; b.textContent = 'Uploading...';
+  try {
+    var shot = await compress(file, 900, 0.6);
+    if (!shot || shot.length < 200) throw new Error('Could not read that photo.');
+    var r = await post({ action:'deposit_req', amount:amt, method:method, ref:ref, photo:shot });
+    if (!r.ok){
+      toast(esc(r.error)); b.disabled = false; b.textContent = 'Send for approval'; return;
+    }
+    toast('Sent for approval. You will get a Telegram message when it is confirmed.', 4200);
+    renderWallet();
+  } catch(e){
+    toast('Failed: ' + esc(e.message));
+    b.disabled = false; b.textContent = 'Send for approval';
+  }
+}
+
+async function submitWithdraw(){
+  var amt = parseInt(el('wdAmt').value || '0', 10);
+  var acct = (el('wdAcct').value || '').trim();
+  var method = el('wdMethod').value;
+  if (!amt){ toast('Enter an amount.'); return; }
+  if (!acct){ toast('Enter where to send the payout.'); return; }
+  var b = el('wdBtn'); b.disabled = true; b.textContent = 'Sending...';
+  try {
+    var r = await post({ action:'withdraw_req', amount:amt, account:acct, method:method });
+    if (!r.ok){
+      toast(esc(r.error)); b.disabled = false; b.textContent = 'Request withdrawal'; return;
+    }
+    setCoins(r.coins);
+    toast('Withdrawal requested. The admin will pay it.', 4200);
+    renderWallet();
+  } catch(e){
+    toast('Failed: ' + esc(e.message));
+    b.disabled = false; b.textContent = 'Request withdrawal';
+  }
+}
+
+/* ---------------- my profile ---------------- */
+async function renderMe(){
+  el('stage').innerHTML = header('My Profile', 'This is what others see') + '<div id="meBox"><div class="spin"></div></div>';
+  try {
+    var r = await post({ action:'boot' });
+    ME = r; setCoins(r.coins);
+    var p = r.profile || {};
+    var ph = p.photos || [];
+    var thumbs = [1,2,3,4,5].map(function(s){
+      var has = ph.indexOf(s) >= 0;
+      return '<div class="thumb">'
+        + (has ? '<img id="pimg' + s + '" src=""><button class="rm" onclick="delPhoto(' + s + ')">&times;</button>'
+               : '<span>+</span>')
+        + '</div>';
+    }).join('');
+    var roles = ['Male','Female','Other'].map(function(g){
+      return '<option' + (p.gender === g ? ' selected' : '') + '>' + g + '</option>';
+    }).join('');
+    var looks = ['Female','Male','Other','All'].map(function(g){
+      return '<option' + (p.looking === g ? ' selected' : '') + '>' + g + '</option>';
+    }).join('');
+    var cats = ['Dating','Friendship','Girlfriend','Boyfriend','Chat','Marriage'].map(function(c){
+      return '<option' + (p.category === c ? ' selected' : '') + '>' + c + '</option>';
+    }).join('');
+
+    el('meBox').innerHTML = '<div class="glass" style="padding:14px;margin-bottom:12px">'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<div class="avatar" style="width:56px;height:56px;font-size:20px">' + esc(initial(p.name)) + '</div>'
+      + '<div><div style="font-size:17px;font-weight:800">' + esc(p.name) + ', ' + esc(p.age) + '</div>'
+      + '<div class="sub">' + esc(p.gender) + ' / ' + esc(p.category)
+      + (p.city ? ' / ' + esc(p.city) : '') + '</div>'
+      + '<div class="sub" style="color:#fcd34d">' + money(r.coins) + ' coins</div></div></div></div>'
+
+      + '<div class="glass" style="padding:14px;margin-bottom:12px"><div class="h2">My photos</div>'
+      + '<p class="sub" style="margin-bottom:4px">Add 2 to 5 clear photos. The first one is your cover on Discover.</p>'
+      + '<div class="thumbs">' + thumbs + '</div>'
+      + '<input type="file" id="photoPick" accept="image/*" style="display:none" onchange="pickPhoto(this)">'
+      + '<button class="btn ghost" style="margin-top:10px" onclick="chooseSlot()">'
+      + (ph.length >= 5 ? '5 photos is the maximum' : 'Add a photo') + '</button></div>'
+
+      + '<div class="glass" style="padding:14px;margin-bottom:12px"><div class="h2">About me</div>'
+      + '<div class="field"><label class="lbl">NAME</label><input id="edName" value="' + esc(p.name) + '"></div>'
+      + '<div class="row"><div class="field"><label class="lbl">AGE</label>'
+      + '<input id="edAge" type="number" value="' + esc(p.age) + '"></div>'
+      + '<div class="field"><label class="lbl">CITY</label>'
+      + '<input id="edCity" value="' + esc(p.city || '') + '"></div></div>'
+      + '<div class="row"><div class="field"><label class="lbl">I AM</label><select id="edGender">' + roles + '</select></div>'
+      + '<div class="field"><label class="lbl">I WANT</label><select id="edLooking">' + looks + '</select></div></div>'
+      + '<div class="field"><label class="lbl">CATEGORY</label><select id="edCat">' + cats + '</select></div>'
+      + '<div class="field"><label class="lbl">ABOUT ME</label>'
+      + '<textarea id="edBio" rows="3">' + esc(p.bio || '') + '</textarea></div>'
+      + '<button class="btn" onclick="saveMe()">Save changes</button></div>'
+
+      + '<div class="glass" style="padding:14px"><div class="h2">Account</div>'
+      + '<div class="kv"><span>Telegram ID</span><span>' + esc(r.uid) + '</span></div>'
+      + '<div class="kv"><span>Role</span><span>' + (r.role ? esc(r.role.role) : 'Member') + '</span></div>'
+      + '<div class="kv" style="border:0"><span>Message price</span><span>'
+      + esc(r.settings.msg_price) + ' coins</span></div>'
+      + '<button class="btn ghost" style="margin-top:10px" onclick="go(\'wallet\')">Open wallet</button></div>';
+
+    for (var i = 0; i < ph.length; i++){
+      try {
+        var im = await post({ action:'img', uid:r.uid, slot:ph[i], size:'t' });
+        var n = el('pimg' + ph[i]);
+        if (n && im.ok && im.data) n.src = im.data;
+      } catch(e2){}
+    }
+  } catch(e){ el('meBox').innerHTML = '<div class="warn">' + esc(e.message) + '</div>'; }
+}
+
+function chooseSlot(){
+  var p = ME.profile || {};
+  var ph = p.photos || [];
+  var free = [1,2,3,4,5].filter(function(s){ return ph.indexOf(s) < 0; });
+  if (!free.length){ toast('You already have 5 photos.'); return; }
+  PICK_SLOT = free[0];
+  el('photoPick').click();
+}
+async function pickPhoto(inp){
+  var f = inp.files[0];
+  if (!f) return;
+  toast('Uploading photo...', 6000);
+  try {
+    await uploadPhoto(f, PICK_SLOT, null);
+    toast('Photo added.');
+    renderMe();
+  } catch(e){ toast('Failed: ' + esc(e.message)); }
+  inp.value = '';
+}
+async function delPhoto(slot){
+  try { await post({ action:'del_photo', slot:slot }); renderMe(); }
+  catch(e){ toast(esc(e.message)); }
+}
+async function saveMe(){
+  try {
+    var r = await post({ action:'save_profile',
+      name: el('edName').value.trim(), age: parseInt(el('edAge').value, 10),
+      city: el('edCity').value.trim(), gender: el('edGender').value,
+      looking: el('edLooking').value, category: el('edCat').value,
+      bio: el('edBio').value.trim() });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Saved.');
+    await boot();
+    renderMe();
+  } catch(e){ toast(esc(e.message)); }
+}
+
+/* ---------------- admin ---------------- */
+var ATABS = [['stats','Stats'],['users','Users'],['fakes','Fakes'],['deps','Deposits'],
+  ['wds','Withdraws'],['chats','Chats'],['cmts','Comments'],['roles','Roles'],['set','Settings']];
+
+function renderAdmin(){
+  if (!ME || !ME.is_admin){
+    el('stage').innerHTML = '<div class="warn">This area is for staff only.</div>';
+    return;
+  }
+  el('stage').innerHTML = '<div style="margin-bottom:10px"><div class="h1">Admin</div>'
+    + '<div class="sub">Signed in as ' + esc(ME.role ? ME.role.role : 'staff') + '</div></div>'
+    + '<div class="subnav">' + ATABS.map(function(t){
+        return '<button class="' + (ADMIN_TAB === t[0] ? 'on' : '')
+          + '" onclick="adminGo(\'' + t[0] + '\')">' + t[1] + '</button>';
+      }).join('') + '</div><div id="aBox"><div class="spin"></div></div>';
+  loadAdmin();
+}
+function adminGo(t){ ADMIN_TAB = t; renderAdmin(); }
+
+async function loadAdmin(){
+  var box = el('aBox');
+  if (!box) return;
+  try {
+    if (ADMIN_TAB === 'stats'){
+      var r = await post({ action:'a_stats' });
+      if (!r.ok){ box.innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
+      box.innerHTML = '<div class="glass" style="padding:14px">'
+        + '<div class="kv"><span>Profiles</span><span>' + money(r.users) + '</span></div>'
+        + '<div class="kv"><span>VIP / fake profiles</span><span>' + money(r.fake) + '</span></div>'
+        + '<div class="kv"><span>Banned</span><span>' + money(r.banned) + '</span></div>'
+        + '<div class="kv"><span>Female / Male / Other</span><span>' + money(r.female) + ' / '
+        + money(r.male) + ' / ' + money(r.other) + '</span></div>'
+        + '<div class="kv"><span>Deposits waiting</span><span>' + money(r.pending_deposits) + '</span></div>'
+        + '<div class="kv"><span>Deposits approved</span><span>' + money(r.approved_deposits) + '</span></div>'
+        + '<div class="kv" style="border:0"><span>Withdrawals waiting</span><span>' + money(r.pending_withdraws) + '</span></div>'
+        + '</div><div class="row" style="margin-top:10px">'
+        + '<button class="btn ghost" onclick="adminGo(\'deps\')">Deposits</button>'
+        + '<button class="btn ghost" onclick="adminGo(\'wds\')">Withdrawals</button></div>';
+      return;
     }
 
-    function toggleAuthMode(mode) {
-      if (mode === 'login') {
-        document.getElementById('signupFormFields').classList.add('hidden');
-        document.getElementById('loginFormFields').classList.remove('hidden');
-        document.getElementById('authTitle').innerText = "Welcome Back";
-      } else {
-        document.getElementById('loginFormFields').classList.add('hidden');
-        document.getElementById('signupFormFields').classList.remove('hidden');
-        document.getElementById('authTitle').innerText = "Welcome to HeartSync";
+    if (ADMIN_TAB === 'users'){
+      box.innerHTML = '<input id="uq" placeholder="Search name or id" oninput="searchUsers()" style="margin-bottom:8px">'
+        + '<div id="uList"><div class="spin"></div></div>';
+      loadUsers('');
+      return;
+    }
+
+    if (ADMIN_TAB === 'fakes'){
+      var rf = await post({ action:'a_fakes' });
+      if (!rf.ok){ box.innerHTML = '<div class="warn">' + esc(rf.error) + '</div>'; return; }
+      var fl = rf.fakes || [];
+      box.innerHTML = '<button class="btn" onclick="fakeForm(null)">Create a new profile</button>'
+        + '<p class="sub" style="margin:8px 0">These profiles look like normal members and can talk back to users.</p>'
+        + (fl.length ? '<div class="list">' + fl.map(function(f){
+            return '<div class="item"><div class="avatar">' + esc(initial(f.name)) + '</div>'
+              + '<div class="txt"><div class="nm">' + esc(f.name) + ', ' + esc(f.age) + '</div>'
+              + '<div class="ms">' + esc(f.gender) + ' / ' + esc(f.category) + ' / '
+              + esc(f.photos) + ' photos</div></div>'
+              + '<button class="btn sm ghost" onclick="editFake(\'' + esc(f.uid) + '\')">Edit</button></div>';
+          }).join('') + '</div>'
+          : '<div class="empty glass">No profile of your own yet.</div>');
+      return;
+    }
+
+    if (ADMIN_TAB === 'deps'){
+      var rd = await post({ action:'a_deps', status:'pending' });
+      if (!rd.ok){ box.innerHTML = '<div class="warn">' + esc(rd.error) + '</div>'; return; }
+      var dl = rd.requests || [];
+      box.innerHTML = '<div class="h2">Waiting for approval</div>'
+        + (dl.length ? dl.map(function(d){
+            return '<div class="glass" style="padding:12px;margin-bottom:8px">'
+              + '<div style="display:flex;justify-content:space-between"><b>' + esc(d.n || d.uid)
+              + '</b><span style="color:#fcd34d;font-weight:800">' + money(d.amt) + '</span></div>'
+              + '<div class="sub">' + esc(d.m) + ' / ' + when(d.ts) + ' / ref ' + esc(d.ref || '-') + '</div>'
+              + '<div id="dshot_' + esc(d.id) + '" style="margin-top:8px"></div>'
+              + '<div class="row" style="margin-top:8px">'
+              + '<button class="btn sm green" onclick="depOp(\'' + esc(d.id) + '\',\'approve\')">Approve</button>'
+              + '<button class="btn sm red" onclick="depOp(\'' + esc(d.id) + '\',\'reject\')">Reject</button>'
+              + '</div></div>';
+          }).join('') : '<div class="empty glass">Nothing waiting.</div>')
+        + '<button class="btn ghost" style="margin-top:8px" onclick="seeHistory(\'dep\')">See all history</button>';
+      for (var i = 0; i < dl.length; i++){
+        try {
+          var im = await post({ action:'a_dep_img', id:dl[i].id });
+          var box2 = el('dshot_' + dl[i].id);
+          if (box2 && im.ok && im.data) box2.innerHTML =
+            '<img src="' + im.data + '" style="width:100%;border-radius:10px" onclick="zoom(this.src)">';
+        } catch(e2){}
       }
+      return;
     }
 
-    function submitRegistration() {
-      const firstName = document.getElementById('regFirstName').value.trim();
-      const lastName = document.getElementById('regLastName').value.trim();
-      const username = document.getElementById('regUsername').value.trim().toLowerCase();
-      const phone = document.getElementById('regPhone').value.trim();
-      const gender = document.getElementById('regGender').value;
-      const lookingFor = document.getElementById('regLookingFor').value;
-      const age = parseInt(document.getElementById('regAge').value);
-      const password = document.getElementById('regPassword').value;
-
-      if (!firstName || !lastName || !username || !phone || !age || !password) {
-        alert("Please fill out all sign up fields including username!");
-        return;
-      }
-
-      if (registeredUsers[username]) {
-        alert("Username already taken! Please choose another or login.");
-        return;
-      }
-
-      registeredUsers[username] = {
-        firstName, lastName, username, phone, gender, lookingFor, age, password,
-        coins: 100,
-        lastDailyClaim: 0,
-        profession: "Member",
-        instagram: "@" + username,
-        mode: "Dating",
-        photos: ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500"],
-        friends: [],
-        comments: [],
-        createdAt: new Date().toISOString()
-      };
-
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      localStorage.setItem("heartsync_active_session", username);
-      activeSessionUsername = username;
-      
-      alert("Registration successful! You received 100 Coins Signup Bonus 🎉");
-      document.getElementById('authModal').classList.add('hidden');
-      initUserSession(username);
-      syncProfilesList();
+    if (ADMIN_TAB === 'wds'){
+      var rw = await post({ action:'a_wds', status:'pending' });
+      if (!rw.ok){ box.innerHTML = '<div class="warn">' + esc(rw.error) + '</div>'; return; }
+      var wl = rw.requests || [];
+      box.innerHTML = '<div class="h2">Waiting for payout</div>'
+        + (wl.length ? wl.map(function(w){
+            return '<div class="glass" style="padding:12px;margin-bottom:8px">'
+              + '<div style="display:flex;justify-content:space-between"><b>' + esc(w.n || w.uid)
+              + '</b><span style="color:#fcd34d;font-weight:800">' + money(w.amt) + '</span></div>'
+              + '<div class="sub">' + esc(w.m) + ' to ' + esc(w.acct) + ' / ' + when(w.ts) + '</div>'
+              + '<div class="row" style="margin-top:8px">'
+              + '<button class="btn sm green" onclick="wdOp(\'' + esc(w.id) + '\',\'paid\')">Mark paid</button>'
+              + '<button class="btn sm red" onclick="wdOp(\'' + esc(w.id) + '\',\'reject\')">Reject</button>'
+              + '</div></div>';
+          }).join('') : '<div class="empty glass">Nothing waiting.</div>')
+        + '<button class="btn ghost" style="margin-top:8px" onclick="seeHistory(\'wd\')">See all history</button>';
+      return;
     }
 
-    function submitLogin() {
-      const username = document.getElementById('logUsername').value.trim().toLowerCase();
-      const password = document.getElementById('logPassword').value;
-
-      if (!username || !password) {
-        alert("Please enter username and password!");
-        return;
-      }
-
-      let user = registeredUsers[username];
-      if (!user || user.password !== password) {
-        alert("Invalid username or password!");
-        return;
-      }
-
-      localStorage.setItem("heartsync_active_session", username);
-      activeSessionUsername = username;
-      document.getElementById('authModal').classList.add('hidden');
-      initUserSession(username);
-      syncProfilesList();
+    if (ADMIN_TAB === 'chats'){
+      var rc = await post({ action:'a_fakes' });
+      if (!rc.ok){ box.innerHTML = '<div class="warn">' + esc(rc.error) + '</div>'; return; }
+      var fc = rc.fakes || [];
+      box.innerHTML = '<p class="sub" style="margin-bottom:8px">Pick the profile you want to reply as.</p>'
+        + (fc.length ? '<div class="list">' + fc.map(function(f){
+            return '<div class="item" onclick="asFake(\'' + esc(f.uid) + '\',\'' + esc(f.name) + '\')">'
+              + '<div class="avatar">' + esc(initial(f.name)) + '</div>'
+              + '<div class="txt"><div class="nm">' + esc(f.name) + '</div>'
+              + '<div class="ms">See and answer conversations</div></div></div>';
+          }).join('') + '</div>'
+          : '<div class="empty glass">Create a profile first, in Fakes.</div>');
+      return;
     }
 
-    function logoutUser() {
-      localStorage.removeItem("heartsync_active_session");
-      activeSessionUsername = null;
-      location.reload();
+    if (ADMIN_TAB === 'cmts'){
+      var rm = await post({ action:'a_comments' });
+      if (!rm.ok){ box.innerHTML = '<div class="warn">' + esc(rm.error) + '</div>'; return; }
+      var cl = rm.comments || [];
+      box.innerHTML = '<div class="h2">Latest comments</div>'
+        + (cl.length ? cl.map(function(x){
+            return '<div class="cmt"><b>' + esc(x.n || x.u) + '</b> ' + esc(x.txt)
+              + '<div class="who">on profile ' + esc(x.t) + ' / ' + when(x.ts) + '</div></div>';
+          }).join('') : '<div class="empty glass">No comments yet.</div>');
+      return;
     }
 
-    function initUserSession(username) {
-      let user = registeredUsers[username];
-      if (!user) return;
-      document.getElementById('displayUsername').innerText = "@" + username + ` (${user.firstName})`;
-      updateCoinDisplays(user.coins);
-      syncProfilesList();
+    if (ADMIN_TAB === 'roles'){
+      var rr = await post({ action:'a_roles' });
+      if (!rr.ok){ box.innerHTML = '<div class="warn">' + esc(rr.error) + '</div>'; return; }
+      box.innerHTML = '<div class="glass" style="padding:12px;margin-bottom:10px"><div class="h2">Current staff</div>'
+        + ((rr.roles || []).length ? rr.roles.map(function(x){
+            return '<div class="kv"><span>' + esc(x.name || x.uid) + ' <span class="badge">'
+              + esc(x.role) + '</span></span><span style="font-size:10px">'
+              + esc((x.rights || []).join(', ')) + '</span></div>';
+          }).join('') : '<p class="sub">Only you.</p>')
+        + '</div><div class="glass" style="padding:12px"><div class="h2">Add or change staff</div>'
+        + '<div class="field"><label class="lbl">TELEGRAM ID OF THE USER</label>'
+        + '<input id="rUid" placeholder="e.g. 7221885614"></div>'
+        + '<div class="field"><label class="lbl">ROLE</label><select id="rRole" onchange="roleHint()">'
+        + '<option value="admin">admin</option><option value="subadmin">subadmin</option>'
+        + '<option value="third">third admin</option><option value="owner">owner</option>'
+        + '<option value="none">remove access</option></select></div>'
+        + '<div id="rRights" class="sub" style="margin-bottom:10px"></div>'
+        + '<button class="btn" onclick="setRole()">Apply</button></div>';
+      roleHint();
+      return;
     }
 
-    function updateCoinDisplays(coins) {
-      document.getElementById('userCoinsDisplay').innerText = coins;
-      let usd = (coins / 50).toFixed(2);
-      document.getElementById('userUsdDisplay').innerText = `$${usd}`;
-      document.getElementById('modalCoinBalance').innerText = coins + " Coins";
+    if (ADMIN_TAB === 'set'){
+      var rs = await post({ action:'a_settings' });
+      if (!rs.ok){ box.innerHTML = '<div class="warn">' + esc(rs.error) + '</div>'; return; }
+      var s = rs.settings || {};
+      var ms = s.methods || [];
+      box.innerHTML = '<div class="glass" style="padding:12px"><div class="h2">Prices</div>'
+        + '<div class="row"><div class="field"><label class="lbl">MESSAGE COST</label>'
+        + '<input id="stMsg" type="number" value="' + esc(s.msg_price) + '"></div>'
+        + '<div class="field"><label class="lbl">COMMENT COST</label>'
+        + '<input id="stCmt" type="number" value="' + esc(s.comment_price) + '"></div></div>'
+        + '<div class="row"><div class="field"><label class="lbl">SIGNUP BONUS</label>'
+        + '<input id="stBonus" type="number" value="' + esc(s.signup_bonus) + '"></div>'
+        + '<div class="field"><label class="lbl">COINS PER PAYOUT UNIT</label>'
+        + '<input id="stRate" type="number" value="' + esc(s.rate || 100) + '"></div></div>'
+        + '<div class="row"><div class="field"><label class="lbl">MIN WITHDRAW</label>'
+        + '<input id="stMin" type="number" value="' + esc(s.min_withdraw) + '"></div>'
+        + '<div class="field"><label class="lbl">PAYOUTS PER ACCOUNT</label>'
+        + '<input id="stMax" type="number" value="' + esc(s.max_withdraws) + '"></div></div></div>'
+        + '<div class="glass" style="padding:12px;margin-top:10px">'
+        + '<div class="h2">Payment methods shown to users</div>'
+        + ms.map(function(m, i){
+            return '<div class="field"><label class="lbl">' + esc(String(m.name).toUpperCase())
+              + ' - WHERE TO PAY</label><textarea id="mDet' + i + '" rows="2">'
+              + esc(m.detail) + '</textarea></div>';
+          }).join('')
+        + '</div><button class="btn" style="margin-top:10px" onclick="saveSettings()">Save settings</button>';
+      return;
     }
+  } catch(e){
+    box.innerHTML = '<div class="warn">' + esc(e.message) + '</div>';
+  }
+}
 
-    function claimDailyBonus() {
-      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) return;
-      let user = registeredUsers[activeSessionUsername];
-      let now = Date.now();
-      let twentyFourHours = 24 * 60 * 60 * 1000;
+function searchUsers(){
+  if (UTIMER) clearTimeout(UTIMER);
+  UTIMER = setTimeout(function(){
+    if (el('uq')) loadUsers(el('uq').value.trim());
+  }, 350);
+}
 
-      if (now - user.lastDailyClaim < twentyFourHours) {
-        alert(`Daily bonus already claimed! Come back later.`);
-        return;
-      }
+async function loadUsers(q){
+  var box = el('uList');
+  if (!box) return;
+  try {
+    var r = await post({ action:'a_users', q:q });
+    if (!r.ok){ box.innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
+    var rows = r.users || [];
+    box.innerHTML = rows.length ? '<div class="list">' + rows.map(function(u){
+        return '<div class="item" onclick="userDetail(\'' + esc(u.uid) + '\')">'
+          + '<div class="avatar">' + esc(initial(u.name)) + '</div>'
+          + '<div class="txt"><div class="nm">' + esc(u.name) + ', ' + esc(u.age)
+          + (u.fake ? ' <span class="badge a">vip</span>' : '')
+          + (u.banned ? ' <span class="badge r">ban</span>' : '') + '</div>'
+          + '<div class="ms">' + esc(u.gender) + ' / ' + money(u.coins) + ' coins / '
+          + esc(u.photos) + ' photos</div></div></div>';
+      }).join('') + '</div>' : '<div class="empty glass">No member found.</div>';
+  } catch(e){ box.innerHTML = '<div class="warn">' + esc(e.message) + '</div>'; }
+}
 
-      user.coins += 5;
-      user.lastDailyClaim = now;
-      registeredUsers[activeSessionUsername] = user;
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      updateCoinDisplays(user.coins);
-      alert("Claimed +5 Coins Daily Bonus! 🎉");
+async function userDetail(uid){
+  openModal('<div class="spin"></div>');
+  try {
+    var r = await post({ action:'a_user', uid:uid });
+    if (!r.ok){ closeModal(); toast(esc(r.error)); return; }
+    var p = r.profile || {};
+    var deps = (r.deposits || []).length ? r.deposits.map(function(d){
+        return '<div class="kv"><span>' + when(d.ts) + ' / ' + esc(d.m) + '</span><span>'
+          + money(d.amt) + badge(d.st) + '</span></div>';
+      }).join('') : '<p class="sub">None.</p>';
+    var wds = (r.withdraws || []).length ? r.withdraws.map(function(w){
+        return '<div class="kv"><span>' + when(w.ts) + ' / ' + esc(w.m) + '</span><span>'
+          + money(w.amt) + badge(w.st) + '</span></div>';
+      }).join('') : '<p class="sub">None.</p>';
+    openModal('<div style="font-size:20px;font-weight:800;color:#fda4af">' + esc(p.name) + ', ' + esc(p.age) + '</div>'
+      + '<div class="sub" style="margin-bottom:10px">' + esc(p.gender) + ' / wants ' + esc(p.looking)
+      + ' / ' + esc(p.category) + (p.city ? ' / ' + esc(p.city) : '') + '</div>'
+      + '<div class="kv"><span>Telegram ID</span><span>' + esc(uid) + '</span></div>'
+      + '<div class="kv"><span>Coins</span><span>' + money(r.coins) + '</span></div>'
+      + '<div class="kv"><span>Role</span><span>' + (r.role ? esc(r.role.role) : 'member') + '</span></div>'
+      + '<div class="kv"><span>Likes given / received</span><span>' + money(r.likes_given) + ' / ' + money(r.likes_got) + '</span></div>'
+      + '<div class="kv"><span>Following</span><span>' + money(r.following) + '</span></div>'
+      + '<div class="kv"><span>VIP profile</span><span>' + (p.fake ? 'yes' : 'no') + '</span></div>'
+      + '<div class="kv"><span>Banned</span><span>' + (p.banned ? 'yes' : 'no') + '</span></div>'
+      + '<div class="kv" style="border:0"><span>Joined</span><span>' + when(p.created) + '</span></div>'
+      + (p.bio ? '<p class="sub" style="margin-top:8px">"' + esc(p.bio) + '"</p>' : '')
+      + '<div class="row" style="margin-top:10px">'
+      + '<button class="btn sm ghost" onclick="giveCoins(\'' + esc(uid) + '\')">Give coins</button>'
+      + '<button class="btn sm ' + (p.banned ? 'green' : 'red') + '" onclick="toggleBan(\'' + esc(uid) + '\','
+      + (p.banned ? 1 : 0) + ')">' + (p.banned ? 'Unban' : 'Ban') + '</button></div>'
+      + '<div class="h2" style="margin-top:14px">Deposits</div>' + deps
+      + '<div class="h2" style="margin-top:10px">Withdrawals</div>' + wds);
+  } catch(e){ closeModal(); toast(esc(e.message)); }
+}
+
+async function giveCoins(uid){
+  var v = prompt('How many coins to add? Use a minus sign to take away.', '100');
+  if (v === null) return;
+  var n = parseInt(v, 10);
+  if (!n){ toast('Enter a number.'); return; }
+  try {
+    var r = await post({ action:'a_user_op', uid:uid, op:'coins', value:n });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Balance is now ' + money(r.coins) + ' coins.');
+    closeModal();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function toggleBan(uid, banned){
+  try {
+    var r = await post({ action:'a_user_op', uid:uid, op: banned ? 'unban' : 'ban' });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast(r.banned ? 'Banned.' : 'Unbanned.');
+    closeModal();
+    if (el('uq')) loadUsers(el('uq').value);
+  } catch(e){ toast(esc(e.message)); }
+}
+
+async function editFake(uid){
+  try {
+    var r = await post({ action:'profile', uid:uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    fakeForm(r);
+  } catch(e){ toast(esc(e.message)); }
+}
+
+function fakeForm(p){
+  var isNew = !p;
+  p = p || { uid:'', name:'', age:22, gender:'Female', looking:'All', category:'Dating', city:'', bio:'', photos:[] };
+  var gens = ['Female','Male','Other'].map(function(g){
+    return '<option' + (p.gender === g ? ' selected' : '') + '>' + g + '</option>';
+  }).join('');
+  var cats = ['Dating','Friendship','Girlfriend','Boyfriend','Chat','Marriage'].map(function(c){
+    return '<option' + (p.category === c ? ' selected' : '') + '>' + c + '</option>';
+  }).join('');
+  var extra = '';
+  if (!isNew){
+    extra = '<div class="h2" style="margin-top:14px">Photos</div><div class="thumbs">'
+      + [1,2,3,4,5].map(function(s){
+          var has = (p.photos || []).indexOf(s) >= 0;
+          return '<div class="thumb" onclick="fakePhoto(\'' + esc(p.uid) + '\',' + s + ')">'
+            + (has ? '<img id="fkimg' + s + '" src="">' : '<span>+</span>') + '</div>';
+        }).join('') + '</div>'
+      + '<p class="sub" style="margin-top:6px">Tap a slot to upload a photo.</p>'
+      + '<button class="btn red" style="margin-top:12px" onclick="delFake(\'' + esc(p.uid) + '\')">Delete this profile</button>';
+  }
+  openModal('<div class="h2">' + (isNew ? 'Create a profile' : 'Edit ' + esc(p.name)) + '</div>'
+    + '<div class="field"><label class="lbl">NAME</label><input id="fkName" value="' + esc(p.name) + '"></div>'
+    + '<div class="row"><div class="field"><label class="lbl">AGE</label>'
+    + '<input id="fkAge" type="number" value="' + esc(p.age) + '"></div>'
+    + '<div class="field"><label class="lbl">CITY</label>'
+    + '<input id="fkCity" value="' + esc(p.city || '') + '"></div></div>'
+    + '<div class="row"><div class="field"><label class="lbl">GENDER</label><select id="fkGender">'
+    + gens + '</select></div><div class="field"><label class="lbl">CATEGORY</label><select id="fkCat">'
+    + cats + '</select></div></div>'
+    + '<div class="field"><label class="lbl">ABOUT</label>'
+    + '<textarea id="fkBio" rows="3">' + esc(p.bio || '') + '</textarea></div>'
+    + '<button class="btn" onclick="saveFake(\'' + esc(p.uid) + '\')">Save profile</button>' + extra);
+  if (!isNew){
+    (p.photos || []).forEach(async function(s){
+      try {
+        var im = await post({ action:'img', uid:p.uid, slot:s, size:'t' });
+        var n = el('fkimg' + s);
+        if (n && im.ok && im.data) n.src = im.data;
+      } catch(e){}
+    });
+  }
+}
+
+async function saveFake(uid){
+  try {
+    var r = await post({ action:'a_fake_save', uid:uid || '',
+      name: el('fkName').value.trim(), age: parseInt(el('fkAge').value, 10),
+      gender: el('fkGender').value, category: el('fkCat').value,
+      city: el('fkCity').value.trim(), bio: el('fkBio').value.trim(), looking:'All' });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Saved.');
+    closeModal();
+    if (r.isnew) fakePhoto(r.uid, 1);
+    else loadAdmin();
+  } catch(e){ toast(esc(e.message)); }
+}
+
+function fakePhoto(uid, slot){
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = async function(){
+    var f = inp.files[0];
+    if (!f) return;
+    toast('Uploading...', 6000);
+    try {
+      await uploadPhoto(f, slot, uid);
+      toast('Photo added.');
+      closeModal(); loadAdmin();
+    } catch(e){ toast('Failed: ' + esc(e.message)); }
+  };
+  inp.click();
+}
+
+async function delFake(uid){
+  if (!confirm('Delete this profile? This cannot be undone.')) return;
+  try {
+    var r = await post({ action:'a_fake_del', uid:uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Deleted.');
+    closeModal(); loadAdmin();
+  } catch(e){ toast(esc(e.message)); }
+}
+
+async function depOp(id, op){
+  var note = '';
+  if (op === 'reject') note = prompt('Reason for the user (optional)', '') || '';
+  try {
+    var r = await post({ action:'a_dep_op', id:id, op:op, note:note });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast(op === 'approve' ? 'Approved, coins added.' : 'Rejected.');
+    loadAdmin();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function wdOp(id, op){
+  var note = '';
+  if (op === 'reject') note = prompt('Reason for the user (optional)', '') || '';
+  try {
+    var r = await post({ action:'a_wd_op', id:id, op:op, note:note });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast(op === 'paid' ? 'Marked as paid.' : 'Rejected, coins returned.');
+    loadAdmin();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function seeHistory(kind){
+  try {
+    var r = kind === 'dep' ? await post({ action:'a_deps', status:'approved' })
+                           : await post({ action:'a_wds', status:'paid' });
+    var list = r.requests || [];
+    openModal('<div class="h2">' + (kind === 'dep' ? 'Approved deposits' : 'Paid withdrawals') + '</div>'
+      + (list.length ? list.map(function(x){
+          return '<div class="kv"><span>' + esc(x.n || x.uid) + '<br>' + when(x.ts)
+            + '</span><span>' + money(x.amt) + badge(x.st) + '</span></div>';
+        }).join('') : '<p class="sub">Nothing yet.</p>'));
+  } catch(e){ toast(esc(e.message)); }
+}
+
+async function asFake(uid, name){
+  AS_PROFILE = { uid:uid, name:name };
+  try {
+    var r = await post({ action:'a_threads', as_uid:uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    var th = r.threads || [];
+    openModal('<div class="h2">Conversations of ' + esc(name) + '</div>'
+      + (th.length ? '<div class="list">' + th.map(function(t){
+          return '<div class="item" onclick="adminChat(\'' + esc(uid) + '\',\'' + esc(t.uid) + '\')">'
+            + '<div class="avatar">' + esc(initial(t.name)) + '</div>'
+            + '<div class="txt"><div class="nm">' + esc(t.name) + '</div>'
+            + '<div class="ms">' + esc(t.last || '') + '</div></div>'
+            + '<div style="font-size:9px;color:#9ca3af">' + when(t.ts) + '</div></div>';
+        }).join('') + '</div>'
+        : '<p class="sub">No one has written to this profile yet.</p>'));
+  } catch(e){ toast(esc(e.message)); }
+}
+
+async function adminChat(asUid, uid){
+  openModal('<div class="spin"></div>');
+  try {
+    var r = await post({ action:'a_chat', as_uid:asUid, uid:uid });
+    if (!r.ok){ closeModal(); toast(esc(r.error)); return; }
+    var body = '<div class="empty" style="padding:20px">No messages yet.</div>';
+    if ((r.messages || []).length){
+      body = r.messages.map(function(m){
+        return '<div class="bub ' + (m.me ? 'me' : 'them') + '">' + esc(m.txt)
+          + '<span class="t">' + when(m.ts) + '</span></div>';
+      }).join('');
     }
+    openModal('<div class="h2">Chat with ' + esc(r.name) + '</div>'
+      + '<div class="chat" id="acBox" style="height:300px">' + body + '</div>'
+      + '<div class="row" style="margin-top:8px">'
+      + '<input id="acTxt" placeholder="Reply as ' + esc(AS_PROFILE ? AS_PROFILE.name : 'VIP') + '..." style="flex:1">'
+      + '<button class="btn sm" style="flex:none" onclick="adminSend(\'' + esc(asUid) + '\',\'' + esc(uid) + '\')">Send</button>'
+      + '</div>');
+    if (el('acBox')) el('acBox').scrollTop = el('acBox').scrollHeight;
+  } catch(e){ closeModal(); toast(esc(e.message)); }
+}
 
-    let profiles = [];
-    let tempUploadedPhotos = [];
+async function adminSend(asUid, uid){
+  var t = (el('acTxt').value || '').trim();
+  if (!t) return;
+  try {
+    var r = await post({ action:'a_send', as_uid:asUid, uid:uid, text:t });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Replied. The user gets a Telegram message.');
+    adminChat(asUid, uid);
+  } catch(e){ toast(esc(e.message)); }
+}
 
-    function syncProfilesList() {
-      profiles = [];
-      let currentUser = registeredUsers[activeSessionUsername];
-      let myLookingFor = currentUser ? (currentUser.genderFilterOverride || currentUser.lookingFor || "All") : "All";
+var RIGHTS = {
+  admin: 'users, coins, fakes, deposits, withdraws, chat, comments, settings',
+  subadmin: 'users, deposits, chat, comments',
+  third: 'deposits',
+  owner: 'everything'
+};
+function roleHint(){
+  var r = el('rRole'), h = el('rRights');
+  if (!r || !h) return;
+  h.textContent = 'Can use: ' + (RIGHTS[r.value] || '-');
+}
+async function setRole(){
+  var uid = (el('rUid').value || '').trim();
+  var role = el('rRole').value;
+  if (!uid){ toast('Write the numeric Telegram id.'); return; }
+  try {
+    var r = await post({ action:'a_role_set', uid:uid, role:role });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Saved.');
+    loadAdmin();
+  } catch(e){ toast(esc(e.message)); }
+}
 
-      for (let uname in registeredUsers) {
-        let u = registeredUsers[uname];
-        if (uname === activeSessionUsername) continue; // Skip self
+async function saveSettings(){
+  try {
+    var cur = await post({ action:'a_settings' });
+    var methods = ((cur.settings || {}).methods || []).map(function(m, i){
+      var det = el('mDet' + i);
+      return { id:m.id, name:m.name, detail: det ? det.value : m.detail, rate: m.rate };
+    });
+    var r = await post({ action:'a_settings_set',
+      msg_price: parseInt(el('stMsg').value, 10),
+      comment_price: parseInt(el('stCmt').value, 10),
+      signup_bonus: parseInt(el('stBonus').value, 10),
+      rate: parseInt(el('stRate').value, 10),
+      min_withdraw: parseInt(el('stMin').value, 10),
+      max_withdraws: parseInt(el('stMax').value, 10),
+      methods: methods });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Settings saved.');
+    await boot();
+    loadAdmin();
+  } catch(e){ toast(esc(e.message)); }
+}
 
-        // Filter based on Looking For preference
-        if (myLookingFor !== "All" && u.gender !== myLookingFor) {
-          continue;
-        }
+function zoom(src){
+  openModal('<img src="' + src + '" style="width:100%;border-radius:14px">');
+}
 
-        profiles.push({
-          id: uname,
-          name: u.firstName + " " + u.lastName,
-          username: u.username,
-          age: u.age,
-          gender: u.gender,
-          lookingFor: u.lookingFor || "All",
-          profession: u.profession || "Member",
-          mode: u.mode || "Dating",
-          photos: u.photos && u.photos.length > 0 ? u.photos : ["https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500"],
-          currentPhotoIdx: 0,
-          instagram: u.instagram || ("@" + u.username),
-          friends: u.friends || [],
-          comments: u.comments || []
-        });
-      }
-      renderProfiles();
-    }
-
-    let selectedMode = "Dating";
-    let currentProfileIndex = 0;
-
-    function renderProfiles() {
-      const genderFilterVal = document.getElementById('genderFilter').value;
-      const maxAge = parseInt(document.getElementById('ageSlider').value);
-
-      if (activeSessionUsername && registeredUsers[activeSessionUsername]) {
-        registeredUsers[activeSessionUsername].genderFilterOverride = genderFilterVal;
-      }
-
-      const filtered = profiles.filter(p => p.age <= maxAge && p.mode === selectedMode);
-      const stack = document.getElementById('cardStack');
-      
-      if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
-        currentProfileIndex = 0;
-        stack.innerHTML = `<div class="glass-card p-8 rounded-2xl text-center text-gray-400">No profiles found matching your criteria! Try switching filter options above.</div>`;
-        return;
-      }
-      const p = filtered[currentProfileIndex];
-      const activePhoto = p.photos[p.currentPhotoIdx || 0];
-
-      stack.innerHTML = `
-        <div onclick="openPublicProfile('${p.id}')" class="glass-card rounded-3xl overflow-hidden border border-rose-500/20 shadow-2xl relative cursor-pointer">
-          <div class="relative h-96">
-            <img src="${activePhoto}" class="w-full h-full object-cover">
-            ${p.photos.length > 1 ? `
-              <div class="absolute top-2 left-2 right-2 flex space-x-1 z-10">
-                ${p.photos.map((_, idx) => `<div class="h-1 flex-1 rounded-full ${idx === (p.currentPhotoIdx || 0) ? 'bg-rose-500' : 'bg-white/40'}"></div>`).join('')}
-              </div>
-              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', -1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20 cursor-pointer"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-              <button onclick="event.stopPropagation(); changeCardPhoto('${p.id}', 1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 z-20 cursor-pointer"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-            ` : ''}
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/40 to-transparent p-4 pointer-events-none">
-              <h3 class="text-2xl font-bold">${p.name}, ${p.age} (${p.gender})</h3>
-              <p class="text-xs text-rose-300"><i class="fa-solid fa-briefcase mr-1"></i>${p.profession} | Looking for: ${p.lookingFor}</p>
-              <p class="text-xs text-amber-300 mt-1 font-bold"><i class="fa-solid fa-hand-pointer mr-1"></i>Tap card to view full profile photos, add friend & comment</p>
-            </div>
-          </div>
-        </div>`;
-    }
-
-    function changeCardPhoto(profileId, direction) {
-      let p = profiles.find(x => x.id === profileId);
-      if (p && p.photos) {
-        p.currentPhotoIdx = (p.currentPhotoIdx || 0) + direction;
-        if (p.currentPhotoIdx < 0) p.currentPhotoIdx = p.photos.length - 1;
-        if (p.currentPhotoIdx >= p.photos.length) p.currentPhotoIdx = 0;
-        renderProfiles();
-      }
-    }
-
-    function setMode(mode) {
-      selectedMode = mode;
-      ['Dating', 'Friendship', 'Blind Date'].forEach(m => {
-        document.getElementById(`mode-${m}`).className = (m === mode) ? "flex-1 py-2 rounded-lg font-semibold bg-rose-600 text-white transition cursor-pointer" : "flex-1 py-2 rounded-lg font-semibold text-gray-400 hover:text-white transition cursor-pointer";
-      });
-      currentProfileIndex = 0;
-      renderProfiles();
-    }
-
-    function swipe(action) {
-      if (action === 'like') {
-        alert("You liked this profile! ❤️");
-      } else {
-        alert("Skipped profile.");
-      }
-      currentProfileIndex++;
-      renderProfiles();
-    }
-
-    let viewedProfileId = null;
-
-    function openPublicProfile(userId) {
-      viewedProfileId = userId;
-      let targetUser = registeredUsers[userId];
-      if (!targetUser) return;
-
-      let photosHtml = targetUser.photos.map(img => `<img src="${img}" class="w-full h-64 object-cover rounded-2xl mb-2 border border-white/10">`).join('');
-      let commentsHtml = (targetUser.comments || []).map(c => `<div class="bg-black/40 p-2 rounded text-xs mb-1"><b class="text-rose-300">@${c.user}:</b> ${c.text}</div>`).join('');
-
-      let content = `
-        <div class="text-center space-y-1">
-          <h3 class="font-bold text-xl text-rose-300">${targetUser.firstName} ${targetUser.lastName}, ${targetUser.age}</h3>
-          <p class="text-xs text-amber-300">@${targetUser.username} • Gender: ${targetUser.gender} • Looking For: ${targetUser.lookingFor}</p>
-          <p class="text-xs text-gray-300"><i class="fa-solid fa-briefcase mr-1"></i>${targetUser.profession || 'Member'} | IG: ${targetUser.instagram}</p>
-        </div>
-        <div class="max-h-60 overflow-y-auto hide-scrollbar">${photosHtml}</div>
-        
-        <div class="grid grid-cols-2 gap-2 pt-2">
-          <button onclick="openChatWithUser('${userId}')" class="py-2 bg-rose-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-comments mr-1"></i> Message (5c)</button>
-          <button onclick="addFriend('${userId}')" class="py-2 bg-amber-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-user-plus mr-1"></i> Add Friend</button>
-          <button onclick="swipe('like'); closeModal('publicProfileModal');" class="py-2 bg-emerald-600 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-heart mr-1"></i> Like Profile</button>
-          <button onclick="swipe('dislike'); closeModal('publicProfileModal');" class="py-2 bg-gray-700 font-bold rounded-lg text-white text-xs cursor-pointer"><i class="fa-solid fa-xmark mr-1"></i> Dislike</button>
-        </div>
-
-        <div class="space-y-2 pt-2 border-t border-white/10">
-          <p class="text-xs font-bold text-rose-300">Profile Comments (${(targetUser.comments || []).length}):</p>
-          <div class="max-h-32 overflow-y-auto hide-scrollbar space-y-1">${commentsHtml || '<p class="text-[10px] text-gray-400">No comments yet. Leave one below!</p>'}</div>
-          <div class="flex space-x-1">
-            <input type="text" id="profileCommentInput" placeholder="Write comment..." class="flex-1 bg-black/55 border border-white/20 rounded p-1.5 text-xs text-rose-200 outline-none">
-            <button onclick="submitProfileComment()" class="bg-rose-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">Post</button>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('pubProfileContent').innerHTML = content;
-      openModal('publicProfileModal');
-    }
-
-    function addFriend(userId) {
-      let targetUser = registeredUsers[userId];
-      if (!targetUser.friends) targetUser.friends = [];
-      if (!targetUser.friends.includes(activeSessionUsername)) {
-        targetUser.friends.push(activeSessionUsername);
-        localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-        alert(`Successfully added @${userId} as friend! 🎉`);
-      } else {
-        alert("Already added as friend!");
-      }
-    }
-
-    function submitProfileComment() {
-      let commentText = document.getElementById('profileCommentInput').value.trim();
-      if (!commentText || !viewedProfileId) return;
-      let targetUser = registeredUsers[viewedProfileId];
-      if (!targetUser.comments) targetUser.comments = [];
-      targetUser.comments.push({ user: activeSessionUsername, text: commentText });
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      document.getElementById('profileCommentInput').value = "";
-      openPublicProfile(viewedProfileId);
-    }
-
-    let activeChatUser = null;
-
-    function openChatWithCurrentProfile() {
-      const maxAge = parseInt(document.getElementById('ageSlider').value);
-      const filtered = profiles.filter(p => p.age <= maxAge && p.mode === selectedMode);
-      
-      if (filtered.length === 0 || currentProfileIndex >= filtered.length) {
-        alert("No active profile to chat with right now!");
-        return;
-      }
-      openChatWithUser(filtered[currentProfileIndex].id);
-    }
-
-    function openChatWithUser(userId) {
-      closeModal('publicProfileModal');
-      activeChatUser = registeredUsers[userId];
-      let currentUser = registeredUsers[activeSessionUsername];
-
-      if (currentUser.coins < 5) {
-        alert("You need at least 5 coins to open a chat session! Please deposit coins.");
-        openModal('walletModal');
-        return;
-      }
-
-      currentUser.coins -= 5;
-      registeredUsers[activeSessionUsername] = currentUser;
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      updateCoinDisplays(currentUser.coins);
-      
-      document.getElementById('mainAppSection').classList.add('hidden');
-      document.getElementById('filterSection').classList.add('hidden');
-      document.getElementById('chatPageSection').classList.remove('hidden');
-
-      document.getElementById('chatHeaderName').innerText = activeChatUser.firstName + " " + activeChatUser.lastName;
-      document.getElementById('chatHeaderImg').src = activeChatUser.photos[0];
-
-      let chatKey = `chat_${activeSessionUsername}_${userId}`;
-      let history = JSON.parse(localStorage.getItem(chatKey) || JSON.stringify([
-        { sender: 'them', text: `Hi there! Thanks for reaching out 💕 (5 coins charged)` }
-      ]));
-
-      renderChatHistory(history);
-    }
-
-    function renderChatHistory(history) {
-      let container = document.getElementById('chatMessagesContainer');
-      container.innerHTML = history.map(m => `
-        <div class="p-2.5 rounded-xl max-w-[80%] ${m.sender === 'me' ? 'bg-rose-600 self-end text-white' : 'bg-white/10 self-start text-rose-100'}">
-          ${m.text}
-        </div>`).join('');
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function sendChatMessage() {
-      let textInput = document.getElementById('chatInputText');
-      let text = textInput.value.trim();
-      if (!text || !activeChatUser) return;
-
-      let user = registeredUsers[activeSessionUsername];
-      if (user.coins < 5) {
-        alert("You need at least 5 coins to send a message!");
-        return;
-      }
-
-      user.coins -= 5;
-      registeredUsers[activeSessionUsername] = user;
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      updateCoinDisplays(user.coins);
-
-      let chatKey = `chat_${activeSessionUsername}_${activeChatUser.username}`;
-      let history = JSON.parse(localStorage.getItem(chatKey) || "[]");
-      
-      history.push({ sender: 'me', text });
-      textInput.value = "";
-
-      setTimeout(() => {
-        history.push({ sender: 'them', text: "That's wonderful! Let's get to know each other 😊" });
-        localStorage.setItem(chatKey, JSON.stringify(history));
-        renderChatHistory(history);
-      }, 1000);
-
-      localStorage.setItem(chatKey, JSON.stringify(history));
-      renderChatHistory(history);
-    }
-
-    function switchTab(tab) {
-      if (tab === 'feed') {
-        document.getElementById('chatPageSection').classList.add('hidden');
-        document.getElementById('adminSection').classList.add('hidden');
-        document.getElementById('mainAppSection').classList.remove('hidden');
-        document.getElementById('filterSection').classList.remove('hidden');
-        syncProfilesList();
-      }
-    }
-
-    function openProfileModal() {
-      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) {
-        alert("Session error! Please log in again.");
-        document.getElementById('authModal').classList.remove('hidden');
-        return;
-      }
-      let u = registeredUsers[activeSessionUsername];
-      document.getElementById('profProfession').value = u.profession || "";
-      document.getElementById('profInstagram').value = u.instagram || "";
-      document.getElementById('profGenderSelect').value = u.gender || "Female";
-      document.getElementById('profLookingForSelect').value = u.lookingFor || "All";
-      document.getElementById('profModeSelect').value = u.mode || "Dating";
-      
-      tempUploadedPhotos = u.photos ? [...u.photos] : [];
-      const container = document.getElementById('imagePreviewContainer');
-      container.innerHTML = tempUploadedPhotos.map(p => `<img src="${p}" class="w-12 h-12 object-cover rounded border border-rose-500/40">`).join('');
-      document.getElementById('imageCountStatus').innerText = `${tempUploadedPhotos.length} image(s) loaded`;
-
-      openModal('createProfileModal');
-    }
-
-    function handleImageFilesUpload(inputElement) {
-      const files = inputElement.files;
-      if (files.length < 1) return;
-      if (files.length > 10) { alert("Max 10 pictures allowed."); return; }
-
-      tempUploadedPhotos = [];
-      const container = document.getElementById('imagePreviewContainer');
-      container.innerHTML = "";
-
-      let loaded = 0;
-      for (let i = 0; i < files.length; i++) {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-          tempUploadedPhotos.push(e.target.result);
-          container.innerHTML += `<img src="${e.target.result}" class="w-12 h-12 object-cover rounded border border-rose-500/40">`;
-          loaded++;
-          document.getElementById('imageCountStatus').innerText = `${loaded} image(s) loaded successfully`;
-        };
-        reader.readAsDataURL(files[i]);
-      }
-    }
-
-    function saveUserProfilePhotos() {
-      if (!activeSessionUsername || !registeredUsers[activeSessionUsername]) return;
-      let user = registeredUsers[activeSessionUsername];
-      user.profession = document.getElementById('profProfession').value.trim() || user.profession;
-      user.instagram = document.getElementById('profInstagram').value.trim() || user.instagram;
-      user.gender = document.getElementById('profGenderSelect').value;
-      user.lookingFor = document.getElementById('profLookingForSelect').value;
-      user.mode = document.getElementById('profModeSelect').value;
-
-      if (tempUploadedPhotos.length > 0) user.photos = tempUploadedPhotos;
-
-      registeredUsers[activeSessionUsername] = user;
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      alert("Profile updated successfully!");
-      closeModal('createProfileModal');
-      syncProfilesList();
-    }
-
-    function verifyAndOpenAdmin() {
-      let tg = window.Telegram?.WebApp;
-      let userId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-      if (!userId) {
-        userId = prompt("Enter your Telegram User ID to access Admin Panel:") || "";
-        userId = userId.trim();
-      }
-
-      if (userId === SUPER_ADMIN_ID || adminRegistry[userId]) {
-        toggleAdminView(true, userId);
-      } else {
-        alert("Access Denied.");
-      }
-    }
-
-    function toggleAdminView(show, userId) {
-      document.getElementById('mainAppSection').style.display = show ? 'none' : 'block';
-      document.getElementById('filterSection').style.display = show ? 'none' : 'block';
-      document.getElementById('adminSection').style.display = show ? 'block' : 'none';
-      document.getElementById('chatPageSection').classList.add('hidden');
-      if (show) renderAdminDashboardData();
-    }
-
-    function closeAdminPanel() { 
-      document.getElementById('mainAppSection').style.display = 'block';
-      document.getElementById('filterSection').style.display = 'block';
-      document.getElementById('adminSection').style.display = 'none';
-    }
-
-    function renderAdminDashboardData() {
-      let userListHtml = "";
-      for (let uname in registeredUsers) {
-        let u = registeredUsers[uname];
-        let firstPhoto = u.photos && u.photos[0] ? u.photos[0] : "";
-        userListHtml += `
-          <div class="p-2.5 bg-white/5 rounded-lg space-y-1.5 border border-white/10 flex items-center space-x-3">
-            <img src="${firstPhoto}" class="w-12 h-12 rounded-lg object-cover border border-rose-500/40">
-            <div class="flex-1">
-              <div class="flex justify-between items-center">
-                <p class="font-bold text-rose-300">@${u.username} (${u.firstName})</p>
-                <span class="text-amber-300 font-bold">${u.coins} Coins</span>
-              </div>
-              <p class="text-[10px] text-gray-300">Gender: ${u.gender} | Looking: ${u.lookingFor} | Age: ${u.age}</p>
-              <div class="flex space-x-2 pt-1">
-                <button onclick="adminEditUserCoins('${uname}', 50)" class="bg-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">+50 Coins</button>
-                <button onclick="adminDeleteUser('${uname}')" class="bg-rose-600 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer">Delete</button>
-              </div>
-            </div>
-          </div>`;
-      }
-      document.getElementById('adminUserList').innerHTML = userListHtml || '<p class="text-gray-400 text-center">No registered users yet.</p>';
-    }
-
-    function adminEditUserCoins(username, amt) {
-      registeredUsers[username].coins += amt;
-      localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-      if (username === activeSessionUsername) updateCoinDisplays(registeredUsers[activeSessionUsername].coins);
-      renderAdminDashboardData();
-    }
-
-    function adminDeleteUser(username) {
-      if (confirm(`Delete @${username}?`)) {
-        delete registeredUsers[username];
-        localStorage.setItem("heartsync_registered_users", JSON.stringify(registeredUsers));
-        renderAdminDashboardData();
-        syncProfilesList();
-      }
-    }
-
-    function updateAgeLabel(val) { document.getElementById('ageLabel').innerText = val; }
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    syncProfilesList();
-  </script>
+boot();
+</script>
 </body>
 </html>
