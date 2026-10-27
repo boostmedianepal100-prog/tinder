@@ -782,6 +782,9 @@ async function renderWallet(){
       : '<p class="sub">Nothing yet.</p>';
     var methods = r.methods || [];
     var wd = r.wd || {};
+    var manual = methods.filter(function(m){ return String(m.kind || 'manual') !== 'stars'; });
+    var hasStars = methods.some(function(m){ return String(m.kind || '') === 'stars'; });
+    if (!manual.length) manual = methods;
 
     el('wBox').innerHTML = '<div class="glass" style="padding:16px;text-align:center;margin-bottom:12px">'
       + '<div class="sub">Your balance</div>'
@@ -789,23 +792,36 @@ async function renderWallet(){
       + '<div class="sub">' + esc(r.rate) + ' coins = 1 payout unit</div></div>'
 
       + '<div class="glass" style="padding:14px;margin-bottom:12px">'
-      + '<div class="h2">Add coins</div>'
-      + methods.map(function(m){
+      + '<div class="h2">' + esc(T('add_coins', 'Add coins')) + '</div>'
+      + '<div class="warn">' + esc(T('rate_note', '100 coins = 1 USD. Pick a method below, pay, then upload the screenshot.')) + '</div>'
+      + manual.map(function(m){
           return '<div class="item" style="margin-bottom:6px"><div class="txt">'
             + '<div class="nm">' + esc(m.name) + '</div>'
-            + '<div class="ms" style="white-space:normal">' + esc(m.detail) + '</div></div></div>';
+            + '<div class="ms" style="white-space:normal">' + esc(m.detail).replace(/\n/g, '<br>') + '</div></div></div>';
         }).join('')
-      + '<div class="field" style="margin-top:10px"><label class="lbl">AMOUNT YOU PAID</label>'
-      + '<input id="depAmt" type="number" inputmode="numeric" placeholder="e.g. 100"></div>'
-      + '<div class="field"><label class="lbl">PAYMENT METHOD</label><select id="depMethod">'
-      + methods.map(function(m){
+      + '<div class="field" style="margin-top:10px"><label class="lbl">' + esc(T('amount_you_paid', 'Amount you paid')) + '</label>'
+      + '<input id="depAmt" type="number" inputmode="numeric" placeholder="100"></div>'
+      + '<div class="field"><label class="lbl">' + esc(T('payment_method', 'Payment method')) + '</label><select id="depMethod">'
+      + manual.map(function(m){
           return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>';
         }).join('') + '</select></div>'
-      + '<div class="field"><label class="lbl">TRANSACTION ID / REFERENCE</label>'
-      + '<input id="depRef" placeholder="Code from your payment app"></div>'
-      + '<div class="field"><label class="lbl">SCREENSHOT OF THE PAYMENT</label>'
+      + '<div class="field"><label class="lbl">' + esc(T('txn_ref', 'Transaction ID / reference')) + '</label>'
+      + '<input id="depRef" placeholder="TXID or reference"></div>'
+      + '<div class="field"><label class="lbl">' + esc(T('screenshot', 'Screenshot of the payment')) + '</label>'
       + '<input id="depShot" type="file" accept="image/*"></div>'
-      + '<button class="btn" onclick="submitDeposit()" id="depBtn">Send for approval</button></div>'
+      + '<button class="btn" onclick="submitDeposit()" id="depBtn">'
+      + esc(T('send_for_approval', 'Send for approval')) + '</button></div>'
+
+      + (hasStars ?
+        '<div class="glass" style="padding:14px;margin-bottom:12px;border-color:rgba(251,191,36,.45)">'
+        + '<div class="h2">⭐ ' + esc(T('pay_stars', 'Pay with Telegram Stars')) + '</div>'
+        + '<p class="sub" style="margin-bottom:8px">'
+        + esc(T('stars_note', 'Pay inside Telegram. The coins are added at once, no screenshot and no waiting for approval.')) + '</p>'
+        + '<div class="field"><label class="lbl">' + esc(T('coins_wanted', 'Coins you want')) + '</label>'
+        + '<input id="starAmt" type="number" inputmode="numeric" placeholder="100"></div>'
+        + '<div class="sub" id="starHint" style="margin-bottom:8px">100 coins = 1 USD</div>'
+        + '<button class="btn amber" onclick="submitStars()" id="starBtn">'
+        + esc(T('pay_with_stars_btn', 'Pay with Stars')) + '</button></div>' : '')
 
       + '<div class="glass" style="padding:14px;margin-bottom:12px">'
       + '<div class="h2">Withdraw</div>' + usedMsg
@@ -850,6 +866,31 @@ async function submitDeposit(){
   } catch(e){
     toast('Failed: ' + esc(e.message));
     b.disabled = false; b.textContent = 'Send for approval';
+  }
+}
+
+async function submitStars(){
+  var amt = parseInt(el('starAmt').value || '0', 10);
+  if (!amt || amt < 10){ toast(T('enter_amount', 'Enter the amount of coins you want.')); return; }
+  if (amt % 10 !== 0){ toast(T('round_10', 'Use a number in steps of 10, for example 100.')); return; }
+  var b = el('starBtn'); b.disabled = true; b.textContent = '...';
+  try {
+    var r = await post({ action:'deposit_stars', amount:amt });
+    if (!r.ok){
+      toast(esc(r.error)); b.disabled = false;
+      b.textContent = T('pay_with_stars_btn', 'Pay with Stars'); return;
+    }
+    toast('⭐ ' + r.stars + ' Stars for ' + r.coins + ' coins. Confirm in Telegram.', 5000);
+    try {
+      if (window.Telegram && Telegram.WebApp && Telegram.WebApp.close){
+        setTimeout(function(){ Telegram.WebApp.close(); }, 1200);
+      }
+    } catch(e){}
+    b.disabled = false;
+    b.textContent = T('pay_with_stars_btn', 'Pay with Stars');
+  } catch(e){
+    toast('Failed: ' + esc(e.message));
+    b.disabled = false; b.textContent = T('pay_with_stars_btn', 'Pay with Stars');
   }
 }
 
@@ -1201,12 +1242,29 @@ async function loadAdmin(){
         + '<input id="stRefMin" type="number" value="' + esc(s.ref_min_coins) + '"></div></div></div>'
         + '<div class="glass" style="padding:12px;margin-top:10px">'
         + '<div class="h2">Payment methods shown to users</div>'
+        + '<p class="sub" style="margin-bottom:8px">Write exactly where the member should send the money. '
+        + 'For Telegram Stars no detail is needed, it is paid inside Telegram.</p>'
         + ms.map(function(m, i){
+            var isStars = String(m.kind || '') === 'stars';
             return '<div class="field"><label class="lbl">' + esc(String(m.name).toUpperCase())
-              + ' - WHERE TO PAY</label><textarea id="mDet' + i + '" rows="2">'
-              + esc(m.detail) + '</textarea></div>';
+              + (isStars ? ' - automatic' : ' - WHERE TO PAY') + '</label>'
+              + (isStars
+                  ? '<input id="mDet' + i + '" value="' + esc(m.detail) + '" disabled style="opacity:.5">'
+                  : '<textarea id="mDet' + i + '" rows="3">' + esc(m.detail) + '</textarea>')
+              + '</div>';
           }).join('')
-        + '</div><button class="btn" style="margin-top:10px" onclick="saveSettings()">Save settings</button>';
+        + '</div>'
+        + '<div class="glass" style="padding:12px;margin-top:10px">'
+        + '<div class="h2">' + esc(T('channel', 'Announcement channel')) + '</div>'
+        + '<p class="sub" style="margin-bottom:8px">'
+        + esc(T('channel_note', 'Add this bot as an admin in your channel, then paste the channel id here.')) + '</p>'
+        + '<div class="field"><label class="lbl">' + esc(T('channel_id', 'Channel ID or @username')) + '</label>'
+        + '<input id="stChan" placeholder="-1001234567890 or @mychannel" value="' + esc(s.channel_id || '') + '"></div>'
+        + '<div class="field"><label class="lbl">STARS FOR 1 USD</label>'
+        + '<input id="stStars" type="number" value="' + esc(s.stars_per_usd || 100) + '"></div>'
+        + '<button class="btn ghost" onclick="testChannel()">' + esc(T('channel_test', 'Send a test post')) + '</button>'
+        + '</div>'
+        + '<button class="btn" style="margin-top:10px" onclick="saveSettings()">Save settings</button>';
       return;
     }
   } catch(e){
@@ -1531,7 +1589,8 @@ async function saveSettings(){
     var cur = await post({ action:'a_settings' });
     var methods = ((cur.settings || {}).methods || []).map(function(m, i){
       var det = el('mDet' + i);
-      return { id:m.id, name:m.name, detail: det ? det.value : m.detail, rate: m.rate };
+      return { id:m.id, name:m.name, kind:m.kind || 'manual',
+               detail: det ? det.value : m.detail, rate: m.rate };
     });
     var r = await post({ action:'a_settings_set',
       msg_price: parseInt(el('stMsg').value, 10),
@@ -1543,11 +1602,22 @@ async function saveSettings(){
       daily_bonus: parseInt(el('stDaily').value, 10),
       ref_bonus: parseInt(el('stRef').value, 10),
       ref_min_coins: parseInt(el('stRefMin').value, 10),
+      stars_per_usd: (el('stStars') ? parseInt(el('stStars').value, 10) : 100),
+      channel_id: (el('stChan') ? el('stChan').value.trim() : ''),
       methods: methods });
     if (!r.ok){ toast(esc(r.error)); return; }
     toast('Settings saved.');
     await boot();
     loadAdmin();
+  } catch(e){ toast(esc(e.message)); }
+}
+
+async function testChannel(){
+  var b = event && event.target ? event.target : null;
+  try {
+    var r = await post({ action:'a_chan_test' });
+    if (!r.ok){ toast(esc(r.error), 5000); return; }
+    toast(esc(T('channel_ok', 'Channel connected')) + '. Check the channel.', 4200);
   } catch(e){ toast(esc(e.message)); }
 }
 
