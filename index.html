@@ -1209,6 +1209,9 @@ async function userDetail(uid){
       + '<div class="kv"><span>Role</span><span>' + (r.role ? esc(r.role.role) : 'member') + '</span></div>'
       + '<div class="kv"><span>Likes given / received</span><span>' + money(r.likes_given) + ' / ' + money(r.likes_got) + '</span></div>'
       + '<div class="kv"><span>Following</span><span>' + money(r.following) + '</span></div>'
+      + '<div class="kv"><span>Country</span><span>' + esc(p.country || '-') + '</span></div>'
+      + '<div class="kv"><span>Looking in</span><span>' + esc(p.search_country || 'All') + '</span></div>'
+      + '<div class="kv"><span>Currency</span><span>' + esc(p.currency || '-') + '</span></div>'
       + '<div class="kv"><span>VIP profile</span><span>' + (p.fake ? 'yes' : 'no') + '</span></div>'
       + '<div class="kv"><span>Banned</span><span>' + (p.banned ? 'yes' : 'no') + '</span></div>'
       + '<div class="kv" style="border:0"><span>Joined</span><span>' + when(p.created) + '</span></div>'
@@ -1217,9 +1220,33 @@ async function userDetail(uid){
       + '<button class="btn sm ghost" onclick="giveCoins(\'' + esc(uid) + '\')">Give coins</button>'
       + '<button class="btn sm ' + (p.banned ? 'green' : 'red') + '" onclick="toggleBan(\'' + esc(uid) + '\','
       + (p.banned ? 1 : 0) + ')">' + (p.banned ? 'Unban' : 'Ban') + '</button></div>'
+      + '<div class="h2" style="margin-top:14px">Country and currency</div>'
+      + '<div class="field"><label class="lbl">MY COUNTRY</label><select id="auCountry">'
+      + countryOpts(p.country || '') + '</select></div>'
+      + '<div class="field"><label class="lbl">LOOKING IN</label><select id="auLook">'
+      + '<option value="All">Everyone</option><option value="Mine"'
+      + (p.search_country === 'Mine' ? ' selected' : '') + '>My country only</option>'
+      + countryOpts(p.search_country || '') + '</select></div>'
+      + '<div class="field"><label class="lbl">CURRENCY</label><select id="auCur">'
+      + curOpts(p.currency || 'USD') + '</select></div>'
+      + '<button class="btn" onclick="saveAdminGeo(\'' + esc(uid) + '\')">Save country and currency</button>'
       + '<div class="h2" style="margin-top:14px">Deposits</div>' + deps
       + '<div class="h2" style="margin-top:10px">Withdrawals</div>' + wds);
   } catch(e){ closeModal(); toast(esc(e.message)); }
+}
+
+async function saveAdminGeo(uid){
+  try {
+    var r = await post({ action:'a_user_op', uid:uid, op:'country',
+      country: el('auCountry').value, search_country: el('auLook').value });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    var c = await post({ action:'a_user_op', uid:uid, op:'user_currency',
+      currency: el('auCur').value });
+    if (!c.ok){ toast(esc(c.error)); return; }
+    toast('Saved.');
+    closeModal();
+    if (el('uq')) loadUsers(el('uq').value);
+  } catch(e){ toast(esc(e.message)); }
 }
 
 async function giveCoins(uid){
@@ -1278,6 +1305,9 @@ function fakeForm(p){
     + '<input id="fkAge" type="number" value="' + esc(p.age) + '"></div>'
     + '<div class="field"><label class="lbl">CITY</label>'
     + '<input id="fkCity" value="' + esc(p.city || '') + '"></div></div>'
+    + '<div class="field"><label class="lbl">COUNTRY</label><select id="fkCountry">'
+    + countryOpts(p.country || ((ME && ME.settings && ME.settings.default_country) || 'Nepal'))
+    + '</select></div>'
     + '<div class="row"><div class="field"><label class="lbl">GENDER</label><select id="fkGender">'
     + gens + '</select></div><div class="field"><label class="lbl">CATEGORY</label><select id="fkCat">'
     + cats + '</select></div></div>'
@@ -1300,7 +1330,8 @@ async function saveFake(uid){
     var r = await post({ action:'a_fake_save', uid:uid || '',
       name: el('fkName').value.trim(), age: parseInt(el('fkAge').value, 10),
       gender: el('fkGender').value, category: el('fkCat').value,
-      city: el('fkCity').value.trim(), bio: el('fkBio').value.trim(), looking:'All' });
+      city: el('fkCity').value.trim(), bio: el('fkBio').value.trim(), looking:'All',
+      country: (el('fkCountry') ? el('fkCountry').value : '') });
     if (!r.ok){ toast(esc(r.error)); return; }
     toast('Saved.');
     closeModal();
@@ -1468,6 +1499,333 @@ function zoom(src){
   openModal('<img src="' + src + '" style="width:100%;border-radius:14px">');
 }
 
+/* ============ language / country / currency extension ============ */
+var LANG = 'en', I18N = {}, EN = {}, DOM_MAP = {}, COUNTRIES = [], CURRENCIES = [], MYCUR = 'USD';
+var OBS = null, BUSY = false, NAVDONE = false;
+
+function T(key, fb){ var v = I18N[key] || EN[key] || fb; return v ? v : ''; }
+
+function buildDomMap(){
+  DOM_MAP = {};
+  for (var k in EN){
+    var e = EN[k], d = I18N[k] || e;
+    if (e) DOM_MAP[String(e).toLowerCase()] = d;
+  }
+}
+
+function translateDom(){
+  if (BUSY || LANG === 'en') return;
+  BUSY = true;
+  try {
+    var walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    var n = walk.nextNode();
+    while (n){
+      var key = String(n.nodeValue || '').trim().toLowerCase();
+      if (key && DOM_MAP[key] && DOM_MAP[key] !== n.nodeValue) n.nodeValue = DOM_MAP[key];
+      n = walk.nextNode();
+    }
+    var ins = document.querySelectorAll('input[placeholder]');
+    for (var i = 0; i < ins.length; i++){
+      var pk = String(ins[i].getAttribute('placeholder') || '').toLowerCase();
+      if (DOM_MAP[pk]) ins[i].setAttribute('placeholder', DOM_MAP[pk]);
+    }
+  } catch(e){}
+  BUSY = false;
+}
+
+function watchDom(){
+  if (OBS || !window.MutationObserver) return;
+  OBS = new MutationObserver(function(){
+    if (BUSY) return;
+    setTimeout(translateDom, 80);
+  });
+  OBS.observe(el('stage'), { childList: true, subtree: true });
+}
+
+async function loadGeo(){
+  try { var c = await _post({ action: 'countries' }); if (c && c.ok) COUNTRIES = c.countries || []; } catch(e){}
+  try { var k = await _post({ action: 'currencies' }); if (k && k.ok) CURRENCIES = k.currencies || []; } catch(e){}
+}
+
+async function applyLang(lang){
+  LANG = lang || 'en';
+  try {
+    var r = await _post({ action: 'tr', lang: LANG });
+    if (r && r.ok){ I18N = r.d || {}; EN = r.en || {}; }
+  } catch(e){}
+  buildDomMap();
+  translateDom();
+}
+
+function countryOpts(sel){
+  var out = '';
+  for (var i = 0; i < COUNTRIES.length; i++){
+    var c = COUNTRIES[i];
+    out += '<option value="' + esc(c.name) + '"' + (c.name === sel ? ' selected' : '') + '>'
+        + esc(c.flag + ' ' + c.name) + '</option>';
+  }
+  return out;
+}
+function curOpts(sel){
+  var out = '';
+  for (var i = 0; i < CURRENCIES.length; i++){
+    var c = CURRENCIES[i];
+    out += '<option value="' + esc(c.code) + '"' + (c.code === sel ? ' selected' : '') + '>'
+        + esc(c.code + ' - ' + c.name) + '</option>';
+  }
+  return out;
+}
+
+/* ---- keep the original plumbing, add country/currency/lang automatically ---- */
+var _post = post;
+post = async function(payload){
+  payload = payload || {};
+  var a = payload.action;
+  if (a === 'feed' && payload.country === undefined){
+    payload.country = FEED_FILTER.country || 'All';
+  }
+  if (a === 'signup' || a === 'save_profile'){
+    if (payload.country === undefined && SU.country) payload.country = SU.country;
+    if (payload.search_country === undefined && SU.search_country) payload.search_country = SU.search_country;
+    if (payload.currency === undefined) payload.currency = MYCUR;
+    if (payload.lang === undefined) payload.lang = LANG;
+  }
+  var r = await _post(payload);
+  if (a === 'boot' && r && r.ok){
+    MYCUR = r.currency || 'USD';
+    LANG = r.lang || 'en';
+    await applyLang(LANG);
+    addNav();
+    watchDom();
+  }
+  return r;
+};
+
+function addNav(){
+  if (NAVDONE) return;
+  var nav = el('nav');
+  if (!nav) return;
+  var b = document.createElement('button');
+  b.setAttribute('data-tab', 'geo');
+  b.innerHTML = '<span class="ico">&#127757;</span>' + esc(T('country', 'Country'));
+  b.onclick = function(){ go('geo'); };
+  var adm = el('navAdmin');
+  if (adm) nav.insertBefore(b, adm); else nav.appendChild(b);
+  NAVDONE = true;
+}
+
+/* ---- router: keep every existing tab, add the new one ---- */
+var _go = go;
+go = function(tab){
+  if (tab === 'geo'){ renderGeo(); return; }
+  _go(tab);
+  setTimeout(translateDom, 60);
+};
+
+/* ---- signup: add country, search country, currency, language ---- */
+var _renderSignup = renderSignup;
+renderSignup = function(step){
+  _renderSignup(step);
+  var host = el('stage').querySelector('.glass');
+  if (!host) return;
+  var extra = '';
+  if (step === 1){
+    if (!SU.country) SU.country = (ME && ME.settings && ME.settings.default_country) || 'Nepal';
+    if (!SU.search_country) SU.search_country = 'All';
+    extra = '<div class="h2" style="margin-top:14px">' + esc(T('where_from', 'Where are you from?')) + '</div>'
+      + '<div class="field"><select id="suCountry">' + countryOpts(SU.country) + '</select></div>'
+      + '<div class="h2">' + esc(T('search_in_country', 'Which country are you looking in?')) + '</div>'
+      + '<div class="field"><select id="suSearchCountry"><option value="All">'
+      + esc(T('everyone', 'Everyone')) + '</option>' + countryOpts(SU.search_country) + '</select></div>'
+      + '<div class="h2">' + esc(T('your_currency', 'Your currency')) + '</div>'
+      + '<div class="field"><select id="suCurrency">' + curOpts(MYCUR) + '</select></div>'
+      + '<p class="sub" style="margin-bottom:8px">100 coins = 1 USD. Your balance is shown in the currency you pick.</p>';
+  }
+  if (step === 3){
+    var lo = '';
+    for (var i = 0; i < LANGS_LIST.length; i++){
+      var L = LANGS_LIST[i];
+      lo += '<option value="' + esc(L.code) + '"' + (L.code === LANG ? ' selected' : '') + '>'
+          + esc((L.flag ? L.flag + ' ' : '') + L.name) + '</option>';
+    }
+    extra = '<div class="h2" style="margin-top:14px">' + esc(T('choose_language', 'Choose your language')) + '</div>'
+      + '<div class="field"><select id="suLang">' + lo + '</select></div>';
+  }
+  if (extra){
+    var box = document.createElement('div');
+    box.innerHTML = extra;
+    var btn = null;
+    var all = host.querySelectorAll('.btn');
+    if (all.length) btn = all[all.length - 1];
+    if (btn && btn.parentNode === host) host.insertBefore(box, btn);
+    else host.appendChild(box);
+    if (el('suCountry')) el('suCountry').onchange = function(){ SU.country = this.value; };
+    if (el('suSearchCountry')) el('suSearchCountry').onchange = function(){ SU.search_country = this.value; };
+    if (el('suCurrency')) el('suCurrency').onchange = function(){ MYCUR = this.value; };
+    if (el('suLang')) el('suLang').onchange = function(){ LANG = this.value; applyLang(LANG); };
+  }
+  setTimeout(translateDom, 60);
+};
+
+var LANGS_LIST = [];
+
+async function loadLangs(){
+  try {
+    var r = await _post({ action: 'langs' });
+    if (r && r.ok) LANGS_LIST = r.langs || [];
+  } catch(e){}
+}
+
+/* ---- discover: add the country filter ---- */
+feedFilters = function(){
+  var cats = ['All','Dating','Friendship','Girlfriend','Boyfriend','Chat','Marriage'];
+  var gens = ['All','Female','Male','Other'];
+  if (!FEED_FILTER.country) FEED_FILTER.country = 'All';
+  if (!SU.country) SU.country = (ME && ME.settings && ME.settings.default_country) || 'Nepal';
+  openModal('<div class="h2">' + esc(T('category', 'Category')) + '</div><div id="fc">'
+    + cats.map(function(c){
+        return '<button class="btn ' + (FEED_FILTER.category === c ? '' : 'ghost')
+          + '" style="margin-bottom:6px" data-v="' + c + '" onclick="setF(\'category\',this)">' + c + '</button>';
+      }).join('') + '</div>'
+    + '<div class="h2" style="margin-top:12px">' + esc(T('show_me', 'Show me')) + '</div><div id="fg">'
+    + gens.map(function(g){
+        return '<button class="btn ' + (FEED_FILTER.gender === g ? '' : 'ghost')
+          + '" style="margin-bottom:6px" data-v="' + g + '" onclick="setF(\'gender\',this)">' + g + '</button>';
+      }).join('') + '</div>'
+    + '<div class="h2" style="margin-top:12px">' + esc(T('search_in_country', 'Which country are you looking in?')) + '</div>'
+    + '<div class="field"><select id="ffCountry"><option value="All">'
+    + esc(T('everyone', 'Everyone')) + '</option>'
+    + '<option value="Mine"' + (FEED_FILTER.country === 'Mine' ? ' selected' : '') + '>'
+    + esc(T('my_country_only', 'My country only')) + '</option>'
+    + countryOpts(FEED_FILTER.country) + '</select></div>'
+    + '<button class="btn" style="margin-top:12px" onclick="applyFilters()">'
+    + esc(T('show_profiles', 'Show profiles')) + '</button>');
+};
+
+function applyFilters(){
+  if (el('ffCountry')) FEED_FILTER.country = el('ffCountry').value;
+  closeModal();
+  renderDiscover();
+}
+
+/* ---- wallet: show real currency ---- */
+var _renderWallet = renderWallet;
+renderWallet = async function(){
+  await _renderWallet();
+  var box = el('wBox');
+  if (!box) return;
+  try {
+    var m = await _post({ action: 'money', currency: MYCUR });
+    if (!m || !m.ok) return;
+    var div = document.createElement('div');
+    div.className = 'glass';
+    div.style.cssText = 'padding:14px;text-align:center;margin-bottom:12px';
+    div.innerHTML = '<div class="sub">' + esc(T('balance_in', 'Your balance in your currency')) + '</div>'
+      + '<div style="font-size:28px;font-weight:800;color:#6ee7b7;margin:4px 0">'
+      + esc(m.currency) + ' ' + esc(m.pretty) + '</div>'
+      + '<div class="sub">' + esc(m.coins) + ' coins = ' + esc(m.usd) + ' USD</div>'
+      + '<div class="sub" style="margin-top:4px">1 USD = ' + esc(m.rate) + ' ' + esc(m.currency)
+      + ' &middot; ' + esc(T('exchange_note', 'Live exchange rate, updated daily')) + '</div>';
+    box.insertBefore(div, box.firstChild);
+    translateDom();
+  } catch(e){}
+};
+
+/* ---- the Country tab ---- */
+async function renderGeo(){
+  if (!ME || !ME.registered){ renderWelcome(); return; }
+  if (!COUNTRIES.length || !LANGS_LIST.length){
+    el('stage').innerHTML = '<div class="spin"></div>';
+    if (!COUNTRIES.length) await loadGeo();
+    if (!LANGS_LIST.length) await loadLangs();
+  }
+  var tabs = document.querySelectorAll('#nav button');
+  for (var i = 0; i < tabs.length; i++){
+    if (tabs[i].getAttribute('data-tab') === 'geo') tabs[i].classList.add('on');
+    else tabs[i].classList.remove('on');
+  }
+  var p = ME.profile || {};
+  var myCountry = p.country || SU.country || '';
+  var look = p.search_country || 'All';
+  el('stage').innerHTML = header(T('country', 'Country'), T('language', 'Language') + ' / ' + T('currency', 'Currency'))
+    + '<div id="geoBox"><div class="spin"></div></div>';
+
+  var lo = '';
+  for (var j = 0; j < LANGS_LIST.length; j++){
+    var L = LANGS_LIST[j];
+    lo += '<option value="' + esc(L.code) + '"' + (L.code === LANG ? ' selected' : '') + '>'
+        + esc((L.flag ? L.flag + ' ' : '') + L.name) + '</option>';
+  }
+
+  el('geoBox').innerHTML =
+    '<div class="glass" style="padding:14px;margin-bottom:12px">'
+    + '<div class="h2">' + esc(T('my_country', 'My country')) + '</div>'
+    + '<div class="field"><select id="gMy">' + countryOpts(myCountry) + '</select></div>'
+    + '<div class="h2">' + esc(T('search_in_country', 'Which country are you looking in?')) + '</div>'
+    + '<div class="field"><select id="gLook"><option value="All">'
+    + esc(T('everyone', 'Everyone')) + '</option><option value="Mine"'
+    + (look === 'Mine' ? ' selected' : '') + '>' + esc(T('my_country_only', 'My country only'))
+    + '</option>' + countryOpts(look) + '</select></div>'
+    + '<button class="btn" onclick="saveGeo()">' + esc(T('save_changes', 'Save changes')) + '</button>'
+    + '</div>'
+
+    + '<div class="glass" style="padding:14px;margin-bottom:12px">'
+    + '<div class="h2">' + esc(T('currency', 'Currency')) + '</div>'
+    + '<div id="curInfo" class="sub" style="margin-bottom:8px">...</div>'
+    + '<div class="field"><select id="gCur">' + curOpts(MYCUR) + '</select></div>'
+    + '<button class="btn amber" onclick="saveCur()">' + esc(T('save', 'Save')) + '</button>'
+    + '</div>'
+
+    + '<div class="glass" style="padding:14px">'
+    + '<div class="h2">' + esc(T('choose_language', 'Choose your language')) + '</div>'
+    + '<div class="field"><select id="gLang">' + lo + '</select></div>'
+    + '<button class="btn" onclick="saveLang()">' + esc(T('save', 'Save')) + '</button>'
+    + '</div>';
+
+  try {
+    var m = await _post({ action: 'money', currency: MYCUR });
+    if (m && m.ok && el('curInfo')){
+      el('curInfo').innerHTML = esc(m.coins) + ' coins = ' + esc(m.currency) + ' ' + esc(m.pretty)
+        + '<br>1 USD = ' + esc(m.rate) + ' ' + esc(m.currency);
+    }
+  } catch(e){}
+  translateDom();
+}
+
+async function saveGeo(){
+  try {
+    var r = await _post({ action: 'save_profile',
+      country: el('gMy').value, search_country: el('gLook').value });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    SU.country = el('gMy').value;
+    SU.search_country = el('gLook').value;
+    toast(esc(T('saved', 'Saved')));
+    await boot();
+    renderGeo();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function saveCur(){
+  try {
+    var r = await _post({ action: 'set_currency', currency: el('gCur').value });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    MYCUR = r.currency;
+    toast(esc(T('saved', 'Saved')));
+    renderGeo();
+  } catch(e){ toast(esc(e.message)); }
+}
+async function saveLang(){
+  try {
+    var code = el('gLang').value;
+    var r = await _post({ action: 'set_lang', lang: code });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    await applyLang(code);
+    toast(esc(T('saved', 'Saved')));
+    renderGeo();
+  } catch(e){ toast(esc(e.message)); }
+}
+
+loadLangs();
+loadGeo();
 boot();
 </script>
 </body>
