@@ -115,9 +115,8 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
 .steps{display:flex;gap:5px;margin-bottom:14px}
 .steps i{height:4px;flex:1;border-radius:2px;background:rgba(255,255,255,.15)}
 .steps i.on{background:linear-gradient(90deg,var(--rose),var(--pink))}
-.subnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;scrollbar-width:none}
-.subnav::-webkit-scrollbar{display:none}
-.subnav button{flex:none;font-size:11.5px;font-weight:700;padding:7px 12px;border-radius:999px;
+.subnav{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:4px;margin-bottom:10px}
+.subnav button{flex:0 1 auto;font-size:11.5px;font-weight:700;padding:7px 11px;border-radius:999px;
   background:rgba(255,255,255,.07);border:1px solid var(--line);color:#c9b8c6}
 .subnav button.on{background:linear-gradient(90deg,var(--rose),var(--pink));color:#fff;border-color:transparent}
 .kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:6px 0;
@@ -913,6 +912,15 @@ async function renderMe(){
       + '<textarea id="edBio" rows="3">' + esc(p.bio || '') + '</textarea></div>'
       + '<button class="btn" onclick="saveMe()">Save changes</button></div>'
 
+      + '<div class="glass" style="padding:14px;margin-bottom:12px"><div class="h2">'
+      + esc(T('my_network', 'My network')) + '</div>'
+      + '<div id="netCounts" class="sub" style="margin-bottom:8px">...</div>'
+      + '<div class="row">'
+      + '<button class="btn ghost" onclick="openNetwork(\'following\')">'
+      + esc(T('who_i_follow', 'Who I follow')) + '</button>'
+      + '<button class="btn ghost" onclick="openNetwork(\'likes\')">'
+      + esc(T('who_liked_me', 'Who liked me')) + '</button></div></div>'
+
       + '<div class="glass" style="padding:14px"><div class="h2">Account</div>'
       + '<div class="kv"><span>Telegram ID</span><span>' + esc(r.uid) + '</span></div>'
       + '<div class="kv"><span>Role</span><span>' + (r.role ? esc(r.role.role) : 'Member') + '</span></div>'
@@ -993,15 +1001,27 @@ async function loadAdmin(){
     if (ADMIN_TAB === 'stats'){
       var r = await post({ action:'a_stats' });
       if (!r.ok){ box.innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
-      box.innerHTML = '<div class="glass" style="padding:14px">'
-        + '<div class="kv"><span>Profiles</span><span>' + money(r.users) + '</span></div>'
-        + '<div class="kv"><span>VIP / fake profiles</span><span>' + money(r.fake) + '</span></div>'
+      box.innerHTML = '<div class="row" style="margin-bottom:10px">'
+        + '<div class="glass" style="padding:14px;text-align:center">'
+        + '<div style="font-size:26px;font-weight:800;color:#6ee7b7">' + money(r.real) + '</div>'
+        + '<div class="sub">Real members</div></div>'
+        + '<div class="glass" style="padding:14px;text-align:center">'
+        + '<div style="font-size:26px;font-weight:800;color:#fcd34d">' + money(r.fake) + '</div>'
+        + '<div class="sub">Own profiles</div></div></div>'
+        + '<div class="glass" style="padding:14px">'
+        + '<div class="kv"><span>Total profiles</span><span>' + money(r.users) + '</span></div>'
+        + '<div class="kv"><span>Real female / male</span><span>' + money(r.real_female)
+        + ' / ' + money(r.real_male) + '</span></div>'
+        + '<div class="kv"><span>Own profile female / male</span><span>' + money(r.fake_female)
+        + ' / ' + money(r.fake_male) + '</span></div>'
+        + '<div class="kv"><span>Other gender</span><span>' + money(r.other) + '</span></div>'
         + '<div class="kv"><span>Banned</span><span>' + money(r.banned) + '</span></div>'
-        + '<div class="kv"><span>Female / Male / Other</span><span>' + money(r.female) + ' / '
-        + money(r.male) + ' / ' + money(r.other) + '</span></div>'
+        + '<div class="kv"><span>Coins held by members</span><span>' + money(r.coins_held) + '</span></div>'
         + '<div class="kv"><span>Deposits waiting</span><span>' + money(r.pending_deposits) + '</span></div>'
         + '<div class="kv"><span>Deposits approved</span><span>' + money(r.approved_deposits) + '</span></div>'
-        + '<div class="kv" style="border:0"><span>Withdrawals waiting</span><span>' + money(r.pending_withdraws) + '</span></div>'
+        + '<div class="kv"><span>Withdrawals waiting</span><span>' + money(r.pending_withdraws) + '</span></div>'
+        + '<div class="kv" style="border:0"><span>Daily login bonus</span><span>'
+        + money(r.daily_bonus) + ' coins</span></div>'
         + '</div><div class="row" style="margin-top:10px">'
         + '<button class="btn ghost" onclick="adminGo(\'deps\')">Deposits</button>'
         + '<button class="btn ghost" onclick="adminGo(\'wds\')">Withdrawals</button></div>';
@@ -1119,8 +1139,10 @@ async function loadAdmin(){
         + '<div class="field"><label class="lbl">TELEGRAM ID OF THE USER</label>'
         + '<input id="rUid" placeholder="e.g. 7221885614"></div>'
         + '<div class="field"><label class="lbl">ROLE</label><select id="rRole" onchange="roleHint()">'
-        + '<option value="admin">admin</option><option value="subadmin">subadmin</option>'
-        + '<option value="third">third admin</option><option value="owner">owner</option>'
+        + '<option value="admin">admin (equal rights)</option>'
+        + '<option value="subadmin">sub admin</option>'
+        + '<option value="third">third admin (payments only)</option>'
+        + '<option value="owner">transfer owner</option>'
         + '<option value="none">remove access</option></select></div>'
         + '<div id="rRights" class="sub" style="margin-bottom:10px"></div>'
         + '<button class="btn" onclick="setRole()">Apply</button></div>';
@@ -1145,7 +1167,9 @@ async function loadAdmin(){
         + '<div class="row"><div class="field"><label class="lbl">MIN WITHDRAW</label>'
         + '<input id="stMin" type="number" value="' + esc(s.min_withdraw) + '"></div>'
         + '<div class="field"><label class="lbl">PAYOUTS PER ACCOUNT</label>'
-        + '<input id="stMax" type="number" value="' + esc(s.max_withdraws) + '"></div></div></div>'
+        + '<input id="stMax" type="number" value="' + esc(s.max_withdraws) + '"></div></div>'
+        + '<div class="field"><label class="lbl">DAILY LOGIN BONUS (EVERY 24 HOURS)</label>'
+        + '<input id="stDaily" type="number" value="' + esc(s.daily_bonus) + '"></div></div>'
         + '<div class="glass" style="padding:12px;margin-top:10px">'
         + '<div class="h2">Payment methods shown to users</div>'
         + ms.map(function(m, i){
@@ -1451,10 +1475,10 @@ async function adminSend(asUid, uid){
 }
 
 var RIGHTS = {
-  admin: 'users, coins, fakes, deposits, withdraws, chat, comments, settings',
-  subadmin: 'users, deposits, chat, comments',
-  third: 'deposits',
-  owner: 'everything'
+  admin: 'everything, including adding and removing other admins',
+  subadmin: 'add fake members, reply to chats, confirm payments, see members',
+  third: 'confirm and reject deposits only',
+  owner: 'everything, and cannot be removed by another admin'
 };
 function roleHint(){
   var r = el('rRole'), h = el('rRights');
@@ -1487,6 +1511,7 @@ async function saveSettings(){
       rate: parseInt(el('stRate').value, 10),
       min_withdraw: parseInt(el('stMin').value, 10),
       max_withdraws: parseInt(el('stMax').value, 10),
+      daily_bonus: parseInt(el('stDaily').value, 10),
       methods: methods });
     if (!r.ok){ toast(esc(r.error)); return; }
     toast('Settings saved.');
@@ -1597,6 +1622,7 @@ post = async function(payload){
     await applyLang(LANG);
     addNav();
     watchDom();
+    maybeDaily(r);
   }
   return r;
 };
@@ -1823,6 +1849,143 @@ async function saveLang(){
     renderGeo();
   } catch(e){ toast(esc(e.message)); }
 }
+
+/* ---- daily login bonus ---- */
+var DAILY_SHOWN = false;
+
+function waitText(sec){
+  var s = Number(sec || 0);
+  if (s <= 0) return '';
+  var h = Math.floor(s / 3600);
+  var m = Math.floor((s % 3600) / 60);
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm';
+}
+
+function maybeDaily(r){
+  if (!r || !r.daily || !ME || !ME.registered) return;
+  if (r.daily.ready !== 1) return;
+  if (r.daily.bonus < 1) return;
+  if (DAILY_SHOWN) return;
+  DAILY_SHOWN = true;
+  var old = el('dailyBar');
+  if (old && old.parentNode) old.parentNode.removeChild(old);
+  var d = document.createElement('div');
+  d.id = 'dailyBar';
+  d.className = 'glass';
+  /* fixed, so drawing another tab can never erase it */
+  d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);'
+    + 'top:58px;width:calc(100% - 28px);max-width:432px;z-index:45;padding:12px 14px;'
+    + 'border-color:rgba(251,191,36,.55);background:rgba(40,26,10,.97)';
+  d.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+    + '<div style="font-size:24px">&#127873;</div>'
+    + '<div style="flex:1;min-width:0"><div style="font-weight:800;color:#fcd34d;font-size:13px">'
+    + esc(r.daily.bonus) + ' ' + esc(T('coins', 'coins')) + '</div>'
+    + '<div class="sub" style="font-size:10.5px">'
+    + esc(T('daily_ready', 'Your daily login bonus is ready.')) + '</div></div>'
+    + '<button class="btn sm" style="flex:none" onclick="claimDaily(this)">'
+    + esc(T('claim', 'Claim')) + '</button>'
+    + '<button class="x" style="flex:none;font-size:18px" onclick="hideDaily()">&times;</button>'
+    + '</div>';
+  document.body.appendChild(d);
+}
+
+function hideDaily(){
+  var d = el('dailyBar');
+  if (d && d.parentNode) d.parentNode.removeChild(d);
+}
+
+async function claimDaily(btn){
+  if (btn){ btn.disabled = true; btn.textContent = '...'; }
+  try {
+    var r = await _post({ action: 'claim_daily' });
+    if (!r.ok){
+      if (r.wait) toast('Already claimed. Come back in ' + waitText(r.wait) + '.');
+      else toast(esc(r.error));
+      if (btn){ btn.disabled = false; btn.textContent = 'Claim'; }
+      return;
+    }
+    setCoins(r.coins);
+    toast('🎁 +' + r.bonus + ' ' + T('coins', 'coins') + '. ' + money(r.coins), 3600);
+    hideDaily();
+  } catch(e){
+    toast('Failed: ' + esc(e.message));
+    if (btn){ btn.disabled = false; btn.textContent = 'Claim'; }
+  }
+}
+
+async function loadNetworkCounts(){
+  var box = el('netCounts');
+  if (!box) return;
+  try {
+    var r = await _post({ action: 'network' });
+    if (!r.ok) return;
+    box.innerHTML = esc(T('following_count', 'Following')) + ': <b>' + r.following_count
+      + '</b> &middot; ' + esc(T('liked_count', 'Likes received')) + ': <b>'
+      + r.liked_me_count + '</b>';
+  } catch(e){}
+}
+
+async function openNetwork(kind){
+  openModal('<div class="spin"></div>');
+  try {
+    var r = await _post({ action: 'network' });
+    if (!r.ok){ closeModal(); toast(esc(r.error)); return; }
+    var rows = kind === 'following' ? (r.following || []) : (r.liked_me || []);
+    var title = kind === 'following' ? T('who_i_follow', 'Who I follow')
+                                     : T('who_liked_me', 'Who liked me');
+    var body = '';
+    if (!rows.length){
+      body = '<div class="empty">' + esc(T('nobody_yet', 'Nobody yet.')) + '</div>';
+    } else {
+      body = '<div class="list">' + rows.map(function(p){
+        var av = p.thumb ? '<img class="avatar" src="' + p.thumb + '">'
+                         : '<div class="avatar">' + esc(initial(p.name)) + '</div>';
+        var act = '';
+        if (kind === 'following'){
+          act = '<button class="btn sm ghost" style="flex:none" onclick="unfollowFrom(\''
+            + esc(p.uid) + '\')">' + esc(T('unfollow', 'Unfollow')) + '</button>';
+        } else {
+          act = '<button class="btn sm" style="flex:none" onclick="likeBack(\''
+            + esc(p.uid) + '\')">♥</button>';
+        }
+        return '<div class="item"><div onclick="closeModal();openProfile(\'' + esc(p.uid) + '\')"'
+          + ' style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">' + av
+          + '<div class="txt"><div class="nm">' + esc(p.name) + ', ' + esc(p.age) + '</div>'
+          + '<div class="ms">' + esc(p.gender) + (p.country ? ' / ' + esc(p.country) : '')
+          + (p.city ? ' / ' + esc(p.city) : '') + '</div></div></div>' + act + '</div>';
+      }).join('') + '</div>';
+    }
+    openModal('<div class="h2">' + esc(title) + ' (' + rows.length + ')</div>' + body);
+    translateDom();
+  } catch(e){ closeModal(); toast(esc(e.message)); }
+}
+
+async function unfollowFrom(uid){
+  try {
+    var r = await _post({ action: 'unfollow', uid: uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast(esc(T('unfollowed', 'Unfollowed')));
+    openNetwork('following');
+    loadNetworkCounts();
+  } catch(e){ toast(esc(e.message)); }
+}
+
+async function likeBack(uid){
+  try {
+    var r = await _post({ action: 'like', uid: uid });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast(r.mutual ? '💕 Match!' : '♥ Liked back');
+  } catch(e){ toast(esc(e.message)); }
+}
+
+/* refresh the counts whenever the profile tab is drawn */
+var _renderMe = renderMe;
+renderMe = async function(){
+  await _renderMe();
+  loadNetworkCounts();
+  translateDom();
+};
 
 loadLangs();
 loadGeo();
