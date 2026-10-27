@@ -151,7 +151,7 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
 <header>
   <div class="brand">HeartSync</div>
   <div style="display:flex;align-items:center;gap:8px">
-    <div class="coinpill"><span id="coinVal">0</span> coins</div>
+    <div class="coinpill" onclick="openRefer()" style="cursor:pointer"><span id="coinVal">0</span> coins<span id="coinMoney"></span></div>
     <button class="hbtn" id="btnRefresh" title="Refresh">&#8635;</button>
   </div>
 </header>
@@ -921,6 +921,16 @@ async function renderMe(){
       + '<button class="btn ghost" onclick="openNetwork(\'likes\')">'
       + esc(T('who_liked_me', 'Who liked me')) + '</button></div></div>'
 
+      + '<div class="glass" style="padding:14px;margin-bottom:12px;border-color:rgba(52,211,153,.4)">'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+      + '<div style="font-size:24px">&#129309;</div>'
+      + '<div style="flex:1;min-width:0"><div class="h2" style="margin:0">'
+      + esc(T('refer_earn', 'Refer and earn')) + '</div>'
+      + '<div class="sub">' + esc(T('refer_sub', 'Invite friends and earn real money')) + '</div></div>'
+      + '<button class="btn sm" style="flex:none" onclick="openRefer()">'
+      + esc(T('open', 'Open')) + '</button></div>'
+      + '<div id="refCounts" class="sub" style="margin-top:8px"></div></div>'
+
       + '<div class="glass" style="padding:14px"><div class="h2">Account</div>'
       + '<div class="kv"><span>Telegram ID</span><span>' + esc(r.uid) + '</span></div>'
       + '<div class="kv"><span>Role</span><span>' + (r.role ? esc(r.role.role) : 'Member') + '</span></div>'
@@ -1169,7 +1179,11 @@ async function loadAdmin(){
         + '<div class="field"><label class="lbl">PAYOUTS PER ACCOUNT</label>'
         + '<input id="stMax" type="number" value="' + esc(s.max_withdraws) + '"></div></div>'
         + '<div class="field"><label class="lbl">DAILY LOGIN BONUS (EVERY 24 HOURS)</label>'
-        + '<input id="stDaily" type="number" value="' + esc(s.daily_bonus) + '"></div></div>'
+        + '<input id="stDaily" type="number" value="' + esc(s.daily_bonus) + '"></div>'
+        + '<div class="row"><div class="field"><label class="lbl">REFERRAL BONUS</label>'
+        + '<input id="stRef" type="number" value="' + esc(s.ref_bonus) + '"></div>'
+        + '<div class="field"><label class="lbl">MIN DEPOSIT TO COUNT</label>'
+        + '<input id="stRefMin" type="number" value="' + esc(s.ref_min_coins) + '"></div></div></div>'
         + '<div class="glass" style="padding:12px;margin-top:10px">'
         + '<div class="h2">Payment methods shown to users</div>'
         + ms.map(function(m, i){
@@ -1512,6 +1526,8 @@ async function saveSettings(){
       min_withdraw: parseInt(el('stMin').value, 10),
       max_withdraws: parseInt(el('stMax').value, 10),
       daily_bonus: parseInt(el('stDaily').value, 10),
+      ref_bonus: parseInt(el('stRef').value, 10),
+      ref_min_coins: parseInt(el('stRefMin').value, 10),
       methods: methods });
     if (!r.ok){ toast(esc(r.error)); return; }
     toast('Settings saved.');
@@ -1622,6 +1638,7 @@ post = async function(payload){
     await applyLang(LANG);
     addNav();
     watchDom();
+    refreshMoney();
     maybeDaily(r);
   }
   return r;
@@ -1984,8 +2001,147 @@ var _renderMe = renderMe;
 renderMe = async function(){
   await _renderMe();
   loadNetworkCounts();
+  loadReferCounts();
   translateDom();
 };
+
+/* keep the header money figure in step with the coin balance */
+var _setCoins = setCoins;
+setCoins = function(n){
+  _setCoins(n);
+  if (!MONEY) return;
+  var cpu = Number(MONEY.coins_per_usd || 100);
+  if (cpu < 1) cpu = 100;
+  var local = (Number(n || 0) / cpu) * Number(MONEY.rate || 1);
+  var pretty = local >= 1000 ? local.toLocaleString('en-US', { maximumFractionDigits: 0 })
+                             : local.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  var pill = el('coinMoney');
+  if (pill) pill.textContent = ' · ' + MONEY.currency + ' ' + pretty;
+};
+
+/* ---- money shown in the header pill ---- */
+var MONEY = null;
+
+async function refreshMoney(){
+  try {
+    var m = await _post({ action: 'money', currency: MYCUR });
+    if (!m || !m.ok) return;
+    MONEY = m;
+    var n = el('coinMoney');
+    if (n) n.textContent = ' · ' + m.currency + ' ' + m.pretty;
+  } catch(e){}
+}
+
+/* ---- refer and earn ---- */
+function copyText(txt, btn){
+  var done = function(){
+    toast(esc(T('refer_copied', 'Link copied')));
+    if (btn){ btn.textContent = T('refer_copied', 'Copied'); setTimeout(function(){ if (btn) btn.textContent = T('refer_copy', 'Copy link'); }, 1800); }
+  };
+  try {
+    navigator.clipboard.writeText(txt).then(done, function(){ fallbackCopy(txt); done(); });
+  } catch(e){
+    try { fallbackCopy(txt); done(); } catch(e2){ toast(esc(txt)); }
+  }
+}
+function fallbackCopy(txt){
+  var ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.cssText = 'position:fixed;left:-2000px;top:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch(e){}
+  if (ta.parentNode) ta.parentNode.removeChild(ta);
+}
+
+async function openRefer(){
+  if (!ME || !ME.registered){ toast('Create your profile first.'); return; }
+  openModal('<div class="spin"></div>');
+  try {
+    var r = await _post({ action: 'ref_info' });
+    if (!r.ok){ closeModal(); toast(esc(r.error)); return; }
+    var list = r.list || [];
+    var rows = '';
+    if (list.length){
+      rows = '<div class="list">' + list.map(function(x){
+        return '<div class="item"><div class="avatar">' + esc(initial(x.name)) + '</div>'
+          + '<div class="txt"><div class="nm">' + esc(x.name) + '</div>'
+          + '<div class="ms">' + when(x.joined) + '</div></div>'
+          + (x.paid ? '<span class="badge g">paid</span>' : '<span class="badge a">waiting</span>')
+          + '</div>';
+      }).join('') + '</div>';
+    } else {
+      rows = '<p class="sub">' + esc(T('refer_none', 'You have not invited anyone yet.')) + '</p>';
+    }
+    var moneyLine = '';
+    if (MONEY){
+      var per = (r.bonus / (MONEY.coins_per_usd || 100)) * (MONEY.rate || 1);
+      moneyLine = '<div class="sub" style="margin-top:6px">1 ' + esc(T('refer_bonus','bonus'))
+        + ' = ' + money(r.bonus) + ' coins = ' + esc(MONEY.currency) + ' '
+        + (per >= 1000 ? per.toLocaleString('en-US',{maximumFractionDigits:0})
+                       : per.toLocaleString('en-US',{maximumFractionDigits:2}))
+        + ' &middot; 100 coins = 1 USD</div>';
+    }
+    openModal('<div style="font-size:20px;font-weight:800;color:#6ee7b7">'
+      + esc(T('refer_head', 'Invite friends and earn real money')) + '</div>'
+      + '<p class="sub" style="margin:6px 0 12px">' + esc(T('refer_sub', 'Every friend who joins with your link and pays once gives you a bonus.')) + '</p>'
+      + '<div class="row" style="margin-bottom:12px">'
+      + '<div class="glass" style="padding:10px;text-align:center;flex:1"><div style="font-size:20px;font-weight:800">' + money(r.invited) + '</div><div class="sub">' + esc(T('refer_invited', 'People invited')) + '</div></div>'
+      + '<div class="glass" style="padding:10px;text-align:center;flex:1"><div style="font-size:20px;font-weight:800;color:#6ee7b7">' + money(r.qualified) + '</div><div class="sub">' + esc(T('refer_qualified', 'Paid and counted')) + '</div></div>'
+      + '<div class="glass" style="padding:10px;text-align:center;flex:1"><div style="font-size:20px;font-weight:800;color:#fcd34d">' + money(r.earned) + '</div><div class="sub">' + esc(T('refer_earned', 'Coins earned')) + '</div></div></div>'
+      + '<div class="field"><label class="lbl">' + esc(T('refer_your_link', 'Your personal invite link')) + '</label>'
+      + '<input id="refLink" readonly value="' + esc(r.link) + '" style="font-size:11.5px"></div>'
+      + '<div class="row">'
+      + '<button class="btn" onclick="copyText(\'' + esc(r.link) + '\', this)">' + esc(T('refer_copy', 'Copy link')) + '</button>'
+      + '<button class="btn green" style="flex:none" onclick="shareRefer(\'' + esc(r.link) + '\')">' + esc(T('refer_share', 'Share')) + '</button>'
+      + '</div>' + moneyLine
+      + '<div class="h2" style="margin-top:16px">' + esc(T('refer_terms_title', 'Terms and conditions')) + '</div>'
+      + '<div class="sub" style="line-height:1.7">'
+      + '<b>1.</b> ' + esc(T('refer_t1', 'Share your link with friends.')) + '<br>'
+      + '<b>2.</b> ' + esc(T('refer_t2', 'You earn the bonus only after that person signs up AND pays at least the minimum deposit.')) + '<br>'
+      + '<b>3.</b> ' + esc(T('refer_t3', 'The bonus is paid once per person, never twice for the same friend.')) + '<br>'
+      + '<b>4.</b> ' + esc(T('refer_t4', 'You may not invite yourself or use fake accounts.')) + '<br>'
+      + '<b>5.</b> ' + esc(T('refer_t5', 'Bonus coins work like any other coins.')) + '<br>'
+      + '<b>6.</b> ' + esc(T('refer_t6', 'Withdrawal follows the normal rules of the app.')) + '<br>'
+      + '<b>7.</b> ' + esc(T('refer_t7', 'The bonus amount and minimum deposit can change.')) + '<br>'
+      + '<b>8.</b> ' + esc(T('refer_t8', 'If a payment is refunded, the bonus is taken back.')) + '</div>'
+      + '<div class="warn" style="margin-top:10px">' + esc(T('refer_rule', 'Minimum deposit to count: ')) + money(r.min_coins) + ' ' + esc(T('coins', 'coins'))
+      + ' &middot; ' + esc(T('refer_bonus_each', 'Bonus each time')) + ': ' + money(r.bonus) + ' ' + esc(T('coins', 'coins')) + '</div>'
+      + '<div class="h2" style="margin-top:16px">' + esc(T('refer_invited', 'People invited')) + '</div>' + rows);
+    translateDom();
+  } catch(e){ closeModal(); toast(esc(e.message)); }
+}
+
+function shareRefer(link){
+  var txt = T('refer_share_text', 'Join me on HeartSync');
+  try {
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.switchInlineQuery){
+      Telegram.WebApp.switchInlineQuery(link, ['users', 'groups']);
+      return;
+    }
+  } catch(e){}
+  try {
+    if (navigator.share){
+      navigator.share({ title: 'HeartSync', text: txt, url: link });
+      return;
+    }
+  } catch(e){}
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(link)
+    + '&text=' + encodeURIComponent(txt), '_blank');
+}
+
+async function loadReferCounts(){
+  var box = el('refCounts');
+  if (!box) return;
+  try {
+    var r = await _post({ action: 'ref_info' });
+    if (!r || !r.ok) return;
+    box.innerHTML = esc(T('refer_invited', 'Invited')) + ': <b>' + r.invited + '</b> · '
+      + esc(T('refer_qualified', 'Paid')) + ': <b>' + r.qualified + '</b> · '
+      + esc(T('refer_earned', 'Earned')) + ': <b>' + money(r.earned) + '</b> '
+      + esc(T('coins', 'coins'));
+  } catch(e){}
+}
 
 loadLangs();
 loadGeo();
