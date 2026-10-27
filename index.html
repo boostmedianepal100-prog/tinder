@@ -1264,6 +1264,19 @@ async function loadAdmin(){
         + '<input id="stStars" type="number" value="' + esc(s.stars_per_usd || 100) + '"></div>'
         + '<button class="btn ghost" onclick="testChannel()">' + esc(T('channel_test', 'Send a test post')) + '</button>'
         + '</div>'
+        + '<div class="glass" style="padding:12px;margin-top:10px">'
+        + '<div class="h2">Welcome picture and text</div>'
+        + '<p class="sub" style="margin-bottom:8px">This is posted when a new member joins. '
+        + 'Leave the picture empty and the bot draws one for you. '
+        + 'The easiest way to use your own photo: send /set_welcome to the bot and then send the photo.</p>'
+        + '<div class="field"><label class="lbl">PICTURE LINK (OPTIONAL)</label>'
+        + '<input id="stWelUrl" placeholder="https://your.site/welcome.jpg" value="'
+        + esc(s.welcome_url || '') + '"></div>'
+        + '<div class="field"><label class="lbl">TEXT UNDER THE PICTURE</label>'
+        + '<textarea id="stWelCap" rows="3" placeholder="💕 Welcome to our dating world, {name}!">'
+        + esc(s.welcome_caption || '') + '</textarea></div>'
+        + '<p class="sub">Use {name} for the new member and {count} for the member count.</p>'
+        + '</div>'
         + '<button class="btn" style="margin-top:10px" onclick="saveSettings()">Save settings</button>';
       return;
     }
@@ -1604,6 +1617,8 @@ async function saveSettings(){
       ref_min_coins: parseInt(el('stRefMin').value, 10),
       stars_per_usd: (el('stStars') ? parseInt(el('stStars').value, 10) : 100),
       channel_id: (el('stChan') ? el('stChan').value.trim() : ''),
+      welcome_url: (el('stWelUrl') ? el('stWelUrl').value.trim() : ''),
+      welcome_caption: (el('stWelCap') ? el('stWelCap').value.trim() : ''),
       methods: methods });
     if (!r.ok){ toast(esc(r.error)); return; }
     toast('Settings saved.');
