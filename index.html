@@ -280,11 +280,26 @@ async function uploadPhoto(file, slot, forUid){
 /* ---------------- boot ---------------- */
 async function boot(){
   if (!API){
+    var who = '';
+    var inTG = false;
+    try {
+      if (window.Telegram && Telegram.WebApp){
+        inTG = true;
+        var tu = Telegram.WebApp.initDataUnsafe || {};
+        if (tu.user && tu.user.first_name) who = tu.user.first_name;
+      }
+    } catch(e){}
+    var head = inTG
+      ? '<div class="h1 center" style="margin-top:10px">One tap more'
+        + (who ? ', ' + esc(who) : '') + '</div>'
+      : '<div class="h1 center" style="margin-top:10px">Open this from the bot</div>';
     el('stage').innerHTML = '<div class="glass" style="padding:24px">'
-      + '<div style="font-size:40px;text-align:center">&#128149;</div>'
-      + '<div class="h1 center" style="margin-top:10px">Open this from the bot</div>'
-      + '<p class="sub center" style="margin-top:8px">Go back to Telegram and press the '
-      + '<b>Open HeartSync</b> button. That link is private to your account.</p></div>';
+      + '<div style="font-size:40px;text-align:center">&#128149;</div>' + head
+      + '<p class="sub center" style="margin-top:8px">This app link is private to each account, so it '
+      + 'cannot be built into the shared button. Tap below and press <b>Open HeartSync</b> in the chat.</p>'
+      + '<button class="btn" style="margin-top:14px" onclick="gotoBot()">&#128276; Continue in Telegram</button>'
+      + '<button class="btn ghost" style="margin-top:8px" onclick="boot()">I already did, try again</button>'
+      + '</div>';
     return;
   }
   spin();
@@ -1865,6 +1880,17 @@ async function saveLang(){
     toast(esc(T('saved', 'Saved')));
     renderGeo();
   } catch(e){ toast(esc(e.message)); }
+}
+
+/* jump back to the bot chat, where the private link lives */
+function gotoBot(){
+  try {
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openTelegramLink){
+      Telegram.WebApp.openTelegramLink('https://t.me/Tiinderplusbot');
+      return;
+    }
+  } catch(e){}
+  window.location.href = 'https://t.me/Tiinderplusbot';
 }
 
 /* ---- daily login bonus ---- */
