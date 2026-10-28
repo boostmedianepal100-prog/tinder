@@ -132,7 +132,40 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
 @keyframes sp{to{transform:rotate(360deg)}}
 .gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory;scrollbar-width:none}
 .gallery::-webkit-scrollbar{display:none}
-.gallery img{height:300px;border-radius:16px;object-fit:cover;scroll-snap-align:center;flex:none;max-width:100%}
+.gallery img{height:auto;max-height:460px;width:auto;min-height:240px;border-radius:16px;
+  object-fit:contain;background:#1d0f1d;scroll-snap-align:center;flex:none;max-width:100%;cursor:zoom-in}
+.vfeed{height:calc(100vh - 190px);min-height:380px;overflow-y:auto;scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;border-radius:20px;background:#000;position:relative;
+  box-shadow:0 14px 40px rgba(0,0,0,.55)}
+.vfeed::-webkit-scrollbar{display:none}
+.vslide{position:relative;height:100%;min-height:380px;scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;background:#000;border-radius:20px}
+.vslide .vv{width:100%;height:100%;object-fit:contain;background:#000}
+.vslide .vbad{padding:24px;text-align:center;color:#fca5a5;font-size:13px;line-height:1.6}
+.vslide .vgrad{position:absolute;left:0;right:0;bottom:0;height:52%;pointer-events:none;
+  background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.35) 55%,transparent)}
+.vslide .vmeta{position:absolute;left:14px;right:76px;bottom:16px;pointer-events:none}
+.vslide .vname{font-size:16px;font-weight:800;text-shadow:0 2px 8px #000}
+.vslide .vcap{font-size:12px;color:#e5e7eb;margin-top:4px;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.vslide .vmini{font-size:10px;color:#c4b5c0;margin-top:6px}
+.vslide .vside{position:absolute;right:8px;bottom:22px;display:flex;flex-direction:column;gap:14px}
+.vbtn{background:none;border:0;color:#fff;display:flex;flex-direction:column;align-items:center;
+  gap:2px;font-size:9.5px;font-weight:700;padding:0;width:64px}
+.vbtn .vi{font-size:24px;line-height:1.1;text-shadow:0 2px 8px #000}
+.vbtn .vn{text-shadow:0 2px 6px #000}
+.vempty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;color:#9ca3af;font-size:13px;text-align:center;padding:24px}
+.vempty .btn{width:auto}
+.vtools{display:flex;gap:6px;margin-top:10px;justify-content:center;flex-wrap:wrap}
+.vtools button{font-size:11.5px;font-weight:700;padding:8px 12px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid var(--line);color:#e9d5e4}
+.zshot{position:fixed;inset:0;z-index:80;background:#000;display:flex;flex-direction:column;
+  padding:10px 10px 16px;gap:8px}
+.zshot .zbar{display:flex;align-items:center;justify-content:space-between;color:#fda4af;font-size:15px}
+.zpic{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.zpic img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;
+  transition:transform .22s ease;touch-action:pinch-zoom;user-select:none}
 .cmt{background:rgba(0,0,0,.35);border-radius:11px;padding:8px 10px;font-size:12px;margin-bottom:6px;line-height:1.45}
 .cmt b{color:#fda4af}
 .cmt .who{font-size:9.5px;color:var(--grey);margin-top:3px}
@@ -160,6 +193,7 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
 
 <nav id="nav" class="hide">
   <button data-tab="discover" class="on"><span class="ico">&#128293;</span>Discover</button>
+  <button data-tab="videos"><span class="ico">&#127916;</span>Videos</button>
   <button data-tab="chats"><span class="ico">&#128172;</span>Chats</button>
   <button data-tab="wallet"><span class="ico">&#128176;</span>Wallet</button>
   <button data-tab="me"><span class="ico">&#128100;</span>Profile</button>
@@ -248,7 +282,7 @@ function closeModal(){
   if (m && m.parentNode) m.parentNode.removeChild(m);
 }
 
-function compress(file, maxSide, quality){
+function compress(file, maxSide, quality, maxH){
   return new Promise(function(resolve){
     var img = new Image();
     var fr = new FileReader();
@@ -257,19 +291,40 @@ function compress(file, maxSide, quality){
     img.onload = function(){
       var w = img.width, h = img.height;
       var scale = Math.min(1, maxSide / Math.max(w, h));
+      if (maxH && h * scale > maxH) scale = maxH / h;
       var c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(w * scale));
       c.height = Math.max(1, Math.round(h * scale));
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      var ctx = c.getContext('2d');
+      /* high quality downscaling: smooths instead of dropping pixels */
+      try { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; } catch(e){}
+      ctx.drawImage(img, 0, 0, c.width, c.height);
       resolve(c.toDataURL('image/jpeg', quality));
     };
     fr.readAsDataURL(file);
   });
 }
 
+/* keeps the upload under the storage limit without going back to mush */
+async function compressSized(file, maxSide, maxH, quality, budget){
+  var q = quality;
+  var out = await compress(file, maxSide, q, maxH);
+  for (var i = 0; i < 4; i++){
+    if (!out || out.length <= budget) break;
+    q = q - 0.13;
+    if (q < 0.45) q = 0.45;
+    out = await compress(file, maxSide, q, maxH);
+    if (q <= 0.45) break;
+  }
+  return out;
+}
+
 async function uploadPhoto(file, slot, forUid){
-  var full = await compress(file, 720, 0.6);
-  var thumb = await compress(file, 260, 0.5);
+  /* full size: what a profile card and the photo viewer show */
+  var full = await compressSized(file, 1280, 1600, 0.82, 300000);
+  /* small preview: it travels with every feed row, so it stays light. The card
+     replaces it with the sharp version a moment after it is on screen. */
+  var thumb = await compressSized(file, 320, 420, 0.62, 60000);
   if (!full || full.length < 200) throw new Error('Could not read that photo.');
   var payload = { slot: slot, full: full, thumb: thumb };
   if (forUid){ payload.action = 'a_fake_photo'; payload.uid = forUid; }
@@ -444,6 +499,7 @@ function go(tab){
   }
   if (CHAT_TIMER){ clearInterval(CHAT_TIMER); CHAT_TIMER = null; }
   if (tab === 'discover') renderDiscover();
+  if (tab === 'videos') renderVideos();
   if (tab === 'chats') renderChats();
   if (tab === 'wallet') renderWallet();
   if (tab === 'me') renderMe();
@@ -457,7 +513,9 @@ el('btnRefresh').onclick = function(){ boot(); };
 /* ---------------- discover ---------------- */
 async function renderDiscover(){
   el('stage').innerHTML = header('Discover', 'Tap a card to see everything',
-      '<button class="btn sm ghost" onclick="feedFilters()">Filter</button>')
+      '<div style="display:flex;gap:6px;flex:none">'
+      + '<button class="btn sm ghost" style="flex:none" onclick="go(\'videos\')">Videos</button>'
+      + '<button class="btn sm ghost" style="flex:none" onclick="feedFilters()">Filter</button></div>')
     + '<div style="display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;margin-bottom:8px">'
     + '<span>' + esc(FEED_FILTER.category) + ' / ' + esc(FEED_FILTER.gender) + '</span>'
     + '<span id="feedCount">loading...</span></div>'
@@ -487,7 +545,8 @@ function drawFeed(){
   }
   var p = FEED[0];
   var img = p.thumb
-    ? '<img class="photo" src="' + p.thumb + '" alt="">'
+    ? '<img class="photo" id="coverImg" src="' + p.thumb + '" alt="" '
+      + 'style="filter:blur(2px);transform:scale(1.02);transition:filter .25s">'
     : '<div class="noPhoto">' + esc(initial(p.name)) + '</div>';
   box.innerHTML = '<div class="card" onclick="openProfile(\'' + esc(p.uid) + '\')">' + img
     + '<div class="grad">'
@@ -512,6 +571,24 @@ function drawFeed(){
     + '</div>'
     + (FEED.length > 1 ? '<p class="sub center" style="margin-top:10px">' + FEED.length
         + ' waiting - skip or like this one to move on</p>' : '');
+  upgradeCover(p);
+}
+
+/* the light preview shows at once, the sharp version replaces it a moment later */
+async function upgradeCover(p){
+  if (!p || !p.thumb || !p.slot) return;
+  try {
+    var r = await post({ action:'img', uid:p.uid, slot:p.slot, size:'f' });
+    if (!r || !r.ok || !r.data) return;
+    var n = el('coverImg');
+    if (!n || FEED[0] !== p) return;
+    n.onload = function(){
+      n.style.filter = 'none';
+      n.style.transform = 'none';
+    };
+    n.src = r.data;
+    if (n.complete && n.naturalWidth > 0){ n.style.filter = 'none'; n.style.transform = 'none'; }
+  } catch(e){}
 }
 
 function feedFilters(){
@@ -577,7 +654,8 @@ async function openProfile(uid){
     var gal = '<div class="warn">No photos yet.</div>';
     if (r.photos && r.photos.length){
       gal = '<div class="gallery">' + r.photos.map(function(s){
-        return '<img data-slot="' + s + '" src="">';
+        return '<img data-slot="' + s + '" src="" alt="" '
+          + 'onclick="if(this.src)zshot(this.src)">';
       }).join('') + '</div>';
     }
     var cm = '<p class="sub">No comments yet. Yours would be the first.</p>';
@@ -658,6 +736,445 @@ async function postComment(uid){
     toast('Comment posted. -' + r.charged + ' coins');
     openProfile(uid);
   } catch(e){ toast(esc(e.message)); }
+}
+
+/* ---------------- videos: swipe like tiktok ---------------- */
+var VID = { list: [], next: 0, only: '', cloud: '', canUpload: 1, deep: '', busy: false, obs: null };
+var VIDEO_FILE = null, VIDEO_POSTER = '', VIDEO_DUR = 0, DEEP_DONE = false;
+
+function findVid(id){
+  for (var i = 0; i < VID.list.length; i++) if (VID.list[i].id === id) return VID.list[i];
+  return null;
+}
+
+async function renderVideos(){
+  var deep = (QS.get('vid') || '');
+  if (DEEP_DONE) deep = '';
+  VID = { list: [], next: 0, only: '', cloud: '', canUpload: 1, deep: deep,
+          busy: false, obs: null };
+  el('stage').innerHTML = '<div class="vfeed" id="vfeed">'
+    + '<div style="height:100%;display:flex;align-items:center;justify-content:center">'
+    + '<div class="spin"></div></div></div><div class="vtools" id="vtools"></div>';
+  try {
+    var payload = { action:'vids', offset:0, only:VID.only };
+    if (VID.deep) payload.id = VID.deep;
+    var r = await post(payload);
+    DEEP_DONE = true;
+    if (!r.ok){
+      el('vfeed').innerHTML = '<div class="vempty">' + esc(r.error) + '</div>';
+      return;
+    }
+    VID.cloud = r.cloud || '';
+    VID.canUpload = r.can_upload ? 1 : 0;
+    VID.next = r.next || 0;
+    VID.list = r.videos || [];
+    setCoins(r.coins);
+    if (VID.deep){
+      /* a shared link opens on that video, and swiping up continues with the rest */
+      try {
+        var r2 = await post({ action:'vids', offset:0, only:'' });
+        if (r2 && r2.ok){
+          var have = {};
+          for (var i = 0; i < VID.list.length; i++) have[VID.list[i].id] = 1;
+          var more = r2.videos || [];
+          for (var k = 0; k < more.length; k++){
+            if (!have[more[k].id]) VID.list.push(more[k]);
+          }
+          VID.next = r2.next || 0;
+        }
+      } catch(e2){}
+    }
+    drawTools();
+    paintSlides();
+  } catch(e){
+    el('vfeed').innerHTML = '<div class="vempty">Could not load videos: '
+      + esc(e.message) + '</div>';
+  }
+}
+
+function drawTools(){
+  var box = el('vtools');
+  if (!box) return;
+  var h = '';
+  if (VID.canUpload) h = h + '<button onclick="vNew()">+ New video</button>';
+  if (VID.deep) h = h + '<button onclick="vShowAll()">All videos</button>';
+  h = h + '<button onclick="vToggleMine()">'
+    + (VID.only === 'mine' ? 'Everyone' : 'My videos') + '</button>';
+  box.innerHTML = h;
+}
+
+function vShowAll(){
+  VID.deep = '';
+  try { history.replaceState(null, '', location.pathname + location.search.replace(/[?&]vid=[^&]*/, '')); } catch(e){}
+  renderVideos();
+}
+
+function vToggleMine(){
+  VID.only = (VID.only === 'mine' ? '' : 'mine');
+  renderVideos();
+}
+
+function slideHtml(v){
+  var head = esc(v.name || 'Member');
+  if (v.age) head = head + ', ' + esc(v.age);
+  var body = '';
+  if (v.url){
+    body = '<video class="vv" data-id="' + esc(v.id) + '" src="' + esc(v.url) + '"'
+      + (v.poster ? ' poster="' + esc(v.poster) + '"' : '')
+      + ' playsinline webkit-playsinline muted loop preload="none"></video>';
+  } else {
+    body = '<div class="vbad">This video cannot play here.<br>'
+      + 'The link is not a direct video file.</div>';
+  }
+  return '<div class="vslide" data-id="' + esc(v.id) + '">' + body
+    + '<div class="vgrad"></div>'
+    + '<div class="vmeta"><div class="vname">' + head + '</div>'
+    + (v.cap ? '<div class="vcap">' + esc(v.cap) + '</div>' : '')
+    + '<div class="vmini">' + (v.likes || 0) + ' likes · swipe up for more</div></div>'
+    + '<div class="vside">'
+    + '<button class="vbtn" onclick="vLike(this,\'' + esc(v.id) + '\')">'
+    + '<span class="vi">' + (v.liked ? '&#10084;&#65039;' : '&#129293;') + '</span>'
+    + '<span class="vn">' + (v.likes || 0) + '</span></button>'
+    + '<button class="vbtn" onclick="vShare(\'' + esc(v.id) + '\')">'
+    + '<span class="vi">&#10150;</span><span class="vn">Share</span></button>'
+    + (v.mine
+        ? '<button class="vbtn" onclick="vAskDelete(\'' + esc(v.id) + '\')">'
+          + '<span class="vi">&#128465;</span><span class="vn">Delete</span></button>'
+        : '<button class="vbtn" onclick="openProfile(\'' + esc(v.uid) + '\')">'
+          + '<span class="vi">&#128100;</span><span class="vn">Profile</span></button>')
+    + '</div></div>';
+}
+
+function paintSlides(){
+  var box = el('vfeed');
+  if (!box) return;
+  if (!VID.list.length){
+    box.innerHTML = '<div class="vempty"><div style="font-size:34px">&#127916;</div>'
+      + '<div>No videos here yet.<br>Be the first to post one.</div>'
+      + (VID.canUpload ? '<button class="btn sm" onclick="vNew()">Post a video</button>' : '')
+      + '</div>';
+    return;
+  }
+  var h = '';
+  for (var i = 0; i < VID.list.length; i++) h = h + slideHtml(VID.list[i]);
+  box.innerHTML = h;
+  box.onscroll = function(){
+    if (box.scrollTop + box.clientHeight > box.scrollHeight - 500) vMore();
+  };
+  box.onclick = function(ev){
+    var t = ev.target;
+    var v = null;
+    if (t && t.tagName === 'VIDEO') v = t;
+    if (!v) return;
+    if (v.muted){
+      v.muted = false;
+      try { v.play(); } catch(e){}
+    } else {
+      if (v.paused){ try { v.play(); } catch(e){} }
+      else v.muted = true;
+    }
+  };
+  observeSlides();
+}
+
+function observeSlides(){
+  if (!VID.obs){
+    VID.obs = new IntersectionObserver(function(rows){
+      for (var i = 0; i < rows.length; i++){
+        var e = rows[i];
+        var v = e.target.querySelector('video');
+        if (!v) continue;
+        if (e.intersectionRatio >= 0.55){
+          try { v.play(); } catch(err){}
+        } else {
+          try { v.pause(); } catch(err){}
+        }
+      }
+    }, { threshold: [0, 0.55] });
+  }
+  var all = document.querySelectorAll('.vslide');
+  for (var i = 0; i < all.length; i++){
+    if (all[i].getAttribute('data-obs') !== '1'){
+      all[i].setAttribute('data-obs', '1');
+      VID.obs.observe(all[i]);
+    }
+  }
+}
+
+async function vMore(){
+  if (VID.busy) return;
+  if (!VID.next || VID.next <= 0) return;
+  VID.busy = true;
+  try {
+    var r = await post({ action:'vids', offset:VID.next, only:VID.only });
+    if (r && r.ok && r.videos && r.videos.length){
+      var box = el('vfeed');
+      var have = {};
+      for (var j = 0; j < VID.list.length; j++) have[VID.list[j].id] = 1;
+      var fresh = 0;
+      for (var i = 0; i < r.videos.length; i++){
+        if (have[r.videos[i].id]) continue;
+        have[r.videos[i].id] = 1;
+        VID.list.push(r.videos[i]);
+        box.insertAdjacentHTML('beforeend', slideHtml(r.videos[i]));
+        fresh = fresh + 1;
+      }
+      var told = r.next || 0;
+      /* nothing new came back: stop asking, or the same batch repeats */
+      if (fresh === 0 || told <= VID.next) VID.next = 0;
+      else VID.next = told;
+      if (fresh > 0) observeSlides();
+    } else {
+      VID.next = 0;
+    }
+  } catch(e){ VID.next = 0; }
+  VID.busy = false;
+}
+
+async function vLike(btn, id){
+  try {
+    var r = await post({ action:'vlike', id:id });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    var v = findVid(id);
+    if (v){ v.liked = r.liked; v.likes = r.likes; }
+    if (btn){
+      btn.innerHTML = '<span class="vi">' + (r.liked ? '&#10084;&#65039;' : '&#129293;')
+        + '</span><span class="vn">' + (r.likes || 0) + '</span>';
+    }
+  } catch(e){ toast(esc(e.message)); }
+}
+
+function vAskDelete(id){
+  openModal('<div class="h2">Delete this video?</div>'
+    + '<p class="sub">It is removed from the Videos tab for everyone. This cannot be undone.</p>'
+    + '<button class="btn red" style="margin-top:10px" onclick="vDoDelete(\'' + esc(id) + '\')">Yes, delete it</button>'
+    + '<button class="btn ghost" style="margin-top:8px" onclick="closeModal()">Keep it</button>');
+}
+
+async function vDoDelete(id){
+  try {
+    var r = await post({ action:'vdel', id:id });
+    closeModal();
+    if (!r.ok){ toast(esc(r.error)); return; }
+    toast('Video deleted.');
+    renderVideos();
+  } catch(e){ toast(esc(e.message)); }
+}
+
+/* ---------------- share a video ---------------- */
+function vShare(id){
+  var v = findVid(id);
+  if (!v){ toast('Video not found.'); return; }
+  openModal('<div class="h2">Share this video</div>'
+    + '<p class="sub" style="margin-bottom:10px">' + esc(v.name || '') + '</p>'
+    + '<button class="btn" onclick="vShareMember(\'' + esc(id) + '\')">Send to a member</button>'
+    + '<button class="btn ghost" style="margin-top:8px" onclick="vShareOut(\'' + esc(id) + '\')">'
+    + 'Share to other apps</button>'
+    + '<button class="btn ghost" style="margin-top:8px" onclick="vCopy(\'' + esc(id) + '\')">'
+    + 'Copy the link</button>');
+}
+
+async function vShareMember(id){
+  openModal('<div class="h2">Send to a member</div><div id="vmList">'
+    + '<div class="spin"></div></div>');
+  try {
+    var r = await post({ action:'vmems' });
+    if (!r.ok){ el('vmList').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
+    var rows = r.members || [];
+    if (!rows.length){
+      el('vmList').innerHTML = '<div class="warn">No other members yet.</div>';
+      return;
+    }
+    el('vmList').innerHTML = '<div class="list">' + rows.map(function(m){
+      var av = m.thumb ? '<img class="avatar" src="' + m.thumb + '">'
+                       : '<div class="avatar">' + esc(initial(m.name)) + '</div>';
+      return '<div class="item" onclick="vSendTo(\'' + esc(id) + '\',\'' + esc(m.uid) + '\')">'
+        + av + '<div class="txt"><div class="nm">' + esc(m.name) + '</div></div>'
+        + '<button class="btn sm">Send</button></div>';
+    }).join('') + '</div>';
+  } catch(e){ el('vmList').innerHTML = '<div class="warn">' + esc(e.message) + '</div>'; }
+}
+
+async function vSendTo(id, to){
+  try {
+    var r = await post({ action:'vshare', id:id, to:to });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    closeModal();
+    toast('Sent. They got a link that opens this video.');
+  } catch(e){ toast(esc(e.message)); }
+}
+
+async function vShareOut(id){
+  var v = findVid(id);
+  if (!v) return;
+  try { await post({ action:'vshare', id:id, inc:1 }); } catch(e){}
+  var txt = 'Watch this video on HeartSync';
+  try {
+    if (navigator.share){
+      navigator.share({ title:'HeartSync', text:txt, url:v.link });
+      closeModal();
+      return;
+    }
+  } catch(e){}
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(v.link)
+    + '&text=' + encodeURIComponent(txt), '_blank');
+  closeModal();
+}
+
+async function vCopy(id){
+  var v = findVid(id);
+  if (!v) return;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(v.link);
+      closeModal();
+      toast('Link copied.');
+      return;
+    }
+  } catch(e){}
+  openModal('<div class="h2">Copy this link</div>'
+    + '<div class="glass" style="padding:10px;word-break:break-all;font-size:12px">'
+    + esc(v.link) + '</div>');
+}
+
+/* ---------------- post a video ---------------- */
+function vNew(){
+  VIDEO_FILE = null; VIDEO_POSTER = ''; VIDEO_DUR = 0;
+  openModal('<div class="h2">Post a video</div>'
+    + '<p class="sub" style="margin-bottom:10px">It appears in the Videos tab. People can '
+    + 'like it, and share it to a member or to any other app.</p>'
+    + '<div class="field"><label class="lbl">VIDEO FROM YOUR PHONE</label>'
+    + '<input type="file" id="vFile" accept="video/*" onchange="vPick(this)"></div>'
+    + '<div class="field"><label class="lbl">OR A VIDEO LINK</label>'
+    + '<input id="vUrl" placeholder="https://....mp4" autocapitalize="off" spellcheck="false"></div>'
+    + '<div class="field"><label class="lbl">CAPTION (optional)</label>'
+    + '<input id="vCap" maxlength="200" placeholder="Say something about it"></div>'
+    + '<div class="field"><label class="lbl">COVER PICTURE (optional)</label>'
+    + '<input type="file" id="vCover" accept="image/*" onchange="vCoverPick(this)">'
+    + '<div id="vCoverBox" style="margin-top:6px"></div></div>'
+    + '<div id="vNote" class="warn" style="display:none"></div>'
+    + '<button class="btn" id="vGo" onclick="vSubmit()">Post it</button>'
+    + '<p class="sub" style="margin-top:8px">Videos you post are yours. You can delete any of '
+    + 'them from the video screen at any time.</p>');
+  if (!VID.cloud){
+    vNote('Posting with a link works right away. Uploading straight from your phone needs '
+      + 'the owner to switch on video hosting in Admin > Settings.');
+  }
+}
+
+function vNote(t){
+  var n = el('vNote');
+  if (!n) return;
+  n.style.display = 'block';
+  n.innerHTML = esc(t);
+}
+
+function vPick(inp){
+  var f = inp.files[0];
+  if (!f) return;
+  VIDEO_FILE = f;
+  try {
+    var url = URL.createObjectURL(f);
+    var v = document.createElement('video');
+    v.preload = 'metadata';
+    v.muted = true;
+    v.src = url;
+    v.onloadedmetadata = function(){
+      VIDEO_DUR = Math.round(v.duration || 0);
+      try { v.currentTime = Math.min(1, (v.duration || 2) / 3); } catch(e){}
+    };
+    v.onseeked = function(){
+      try {
+        var w = v.videoWidth, h = v.videoHeight;
+        if (!w || !h) return;
+        var sc = Math.min(1, 420 / Math.max(w, h));
+        var c = document.createElement('canvas');
+        c.width = Math.round(w * sc);
+        c.height = Math.round(h * sc);
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        var p = c.toDataURL('image/jpeg', 0.55);
+        if (p.length < 90000){
+          VIDEO_POSTER = p;
+          var b = el('vCoverBox');
+          if (b) b.innerHTML = '<img src="' + p + '" style="width:100%;border-radius:12px">';
+        }
+      } catch(e){}
+    };
+  } catch(e){}
+}
+
+async function vCoverPick(inp){
+  var f = inp.files[0];
+  if (!f) return;
+  var p = await compressSized(f, 480, 640, 0.6, 80000);
+  if (p && p.length < 90000){
+    VIDEO_POSTER = p;
+    var b = el('vCoverBox');
+    if (b) b.innerHTML = '<img src="' + p + '" style="width:100%;border-radius:12px">';
+  } else {
+    vNote('That picture is too large to use as a cover.');
+  }
+}
+
+function uploadToCloud(cid, file){
+  return new Promise(function(resolve, reject){
+    var fd = new FormData();
+    fd.append('video', file);
+    fetch('https://api.imgur.com/3/image', {
+      method: 'POST',
+      headers: { 'Authorization': 'Client-ID ' + cid },
+      body: fd
+    }).then(function(r){ return r.json(); }).then(function(j){
+      var d = (j && j.data) ? j.data : {};
+      if (d.mp4){ resolve(d.mp4); return; }
+      if (d.link){ resolve(d.link); return; }
+      reject(new Error('The video host refused it. Try a shorter clip or paste a link.'));
+    }).catch(function(){
+      reject(new Error('Upload failed. Paste a video link instead.'));
+    });
+  });
+}
+
+async function vSubmit(){
+  var url = (el('vUrl').value || '').trim();
+  var cap = (el('vCap').value || '').trim();
+  var b = el('vGo');
+  b.disabled = true;
+  b.textContent = 'Posting...';
+  try {
+    if (!url && VIDEO_FILE){
+      if (!VID.cloud){
+        vNote('Uploading from the phone is not switched on. Paste a video link instead.');
+        b.disabled = false;
+        b.textContent = 'Post it';
+        return;
+      }
+      b.textContent = 'Uploading the video...';
+      url = await uploadToCloud(VID.cloud, VIDEO_FILE);
+    }
+    if (!url){
+      vNote('Choose a video from your phone or paste a link first.');
+      b.disabled = false;
+      b.textContent = 'Post it';
+      return;
+    }
+    var r = await post({ action:'vpost', url:url, cap:cap,
+      poster:VIDEO_POSTER || '', dur:VIDEO_DUR || 0 });
+    if (!r.ok){
+      vNote(r.error);
+      b.disabled = false;
+      b.textContent = 'Post it';
+      return;
+    }
+    VIDEO_FILE = null; VIDEO_POSTER = ''; VIDEO_DUR = 0;
+    closeModal();
+    toast('Posted. It is at the top of Videos.', 3600);
+    renderVideos();
+  } catch(e){
+    vNote('Failed: ' + e.message);
+    b.disabled = false;
+    b.textContent = 'Post it';
+  }
 }
 
 /* ---------------- chats ---------------- */
@@ -950,6 +1467,9 @@ async function renderMe(){
 
       + '<div class="glass" style="padding:14px;margin-bottom:12px"><div class="h2">My photos</div>'
       + '<p class="sub" style="margin-bottom:4px">Add 2 to 5 clear photos. The first one is your cover on Discover.</p>'
+      + '<p class="sub" style="margin-bottom:4px;color:#fcd34d">Photos added before this update '
+      + 'were saved small. If one looks soft, remove it and add it again: new uploads are kept in '
+      + 'much higher quality.</p>'
       + '<div class="thumbs">' + thumbs + '</div>'
       + '<input type="file" id="photoPick" accept="image/*" style="display:none" onchange="pickPhoto(this)">'
       + '<button class="btn ghost" style="margin-top:10px" onclick="chooseSlot()">'
@@ -1276,6 +1796,21 @@ async function loadAdmin(){
         + '<textarea id="stWelCap" rows="3" placeholder="💕 Welcome to our dating world, {name}!">'
         + esc(s.welcome_caption || '') + '</textarea></div>'
         + '<p class="sub">Use {name} for the new member and {count} for the member count.</p>'
+        + '</div>'
+        + '<div class="glass" style="padding:12px;margin-top:10px">'
+        + '<div class="h2">Videos</div>'
+        + '<p class="sub" style="margin-bottom:8px">The Videos tab lets members watch clips one '
+        + 'by one, like them and share them. Members can always post by pasting a video link. '
+        + 'Straight from-phone upload needs a free Imgur client id below; leave it empty to keep '
+        + 'link-only posting.</p>'
+        + '<div class="field"><label class="lbl">VIDEOS TAB</label>'
+        + '<select id="stVidOn">'
+        + '<option value="1"' + (Number(s.video_enabled) === 0 ? '' : ' selected') + '>On for everyone</option>'
+        + '<option value="0"' + (Number(s.video_enabled) === 0 ? ' selected' : '') + '>Switched off</option>'
+        + '</select></div>'
+        + '<div class="field"><label class="lbl">IMGUR CLIENT ID FOR PHONE UPLOADS (OPTIONAL)</label>'
+        + '<input id="stVidCloud" placeholder="leave empty to allow links only" value="'
+        + esc(s.video_cloud || '') + '"></div>'
         + '</div>'
         + '<button class="btn" style="margin-top:10px" onclick="saveSettings()">Save settings</button>';
       return;
@@ -1619,6 +2154,8 @@ async function saveSettings(){
       channel_id: (el('stChan') ? el('stChan').value.trim() : ''),
       welcome_url: (el('stWelUrl') ? el('stWelUrl').value.trim() : ''),
       welcome_caption: (el('stWelCap') ? el('stWelCap').value.trim() : ''),
+      video_enabled: (el('stVidOn') ? parseInt(el('stVidOn').value, 10) : 1),
+      video_cloud: (el('stVidCloud') ? el('stVidCloud').value.trim() : ''),
       methods: methods });
     if (!r.ok){ toast(esc(r.error)); return; }
     toast('Settings saved.');
@@ -1638,6 +2175,28 @@ async function testChannel(){
 
 function zoom(src){
   openModal('<img src="' + src + '" style="width:100%;border-radius:14px">');
+}
+
+function closeShot(){
+  var d = document.querySelector('.zshot');
+  if (d && d.parentNode) d.parentNode.removeChild(d);
+}
+
+/* full screen photo, pinch or double tap to zoom, one tap closes */
+function zshot(src){
+  var d = document.createElement('div');
+  d.className = 'zshot';
+  d.innerHTML = '<div class="zbar"><b>HeartSync</b>'
+    + '<button class="x" onclick="closeShot()">&times;</button></div>'
+    + '<div class="zpic"><img id="zImg" src="' + src + '" alt=""></div>'
+    + '<div class="sub center" style="color:#d1d5db">Pinch or double tap to zoom, tap the X to close</div>';
+  document.body.appendChild(d);
+  var im = document.getElementById('zImg');
+  var on = false;
+  im.ondblclick = function(){
+    on = !on;
+    im.style.transform = on ? 'scale(2)' : 'scale(1)';
+  };
 }
 
 /* ============ language / country / currency extension ============ */
