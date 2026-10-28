@@ -35,6 +35,23 @@ header{position:sticky;top:0;z-index:40;background:rgba(21,10,20,.86);backdrop-f
   vertical-align:middle;margin-left:2px}
 .offdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#6b7280;
   border:1.5px solid rgba(10,6,10,.65);vertical-align:middle;margin-left:2px}
+.bellwrap{position:relative;display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:50%;background:rgba(120,20,50,.55);
+  border:1px solid rgba(244,63,94,.45);cursor:pointer;flex:none}
+.bell{font-size:15px;line-height:1}
+.bnum{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;
+  border-radius:9px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;border:1.5px solid #150a14}
+.nrow{display:flex;gap:10px;align-items:flex-start;padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.07)}
+.nrow.unread{background:rgba(244,63,94,.07);border-radius:10px;padding-left:8px;padding-right:8px}
+.nico{width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;
+  justify-content:center;font-size:14px;background:rgba(120,20,50,.55)}
+.ntxt{flex:1;min-width:0;font-size:13px;line-height:1.4}
+.nun{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ef4444;flex:none;margin-top:6px}
+.tbad{display:inline-block;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+  background:#ef4444;color:#fff;font-size:10.5px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex:none}
 .hbtn{background:none;border:0;color:#fb7185;font-size:16px;padding:6px}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:460px;margin:0 auto;
   background:rgba(26,12,26,.95);backdrop-filter:blur(14px);border-top:1px solid rgba(244,63,94,.22);
@@ -198,6 +215,10 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="coinpill" onclick="openRefer()" style="cursor:pointer"><span id="coinVal">0</span> coins<span id="coinMoney"></span></div>
+    <div class="bellwrap" id="btnNotif" title="Notifications" onclick="openNotifs()">
+      <span class="bell">&#128276;</span>
+      <span class="bnum hide" id="notifNum">0</span>
+    </div>
     <button class="hbtn" id="btnRefresh" title="Refresh">&#8635;</button>
   </div>
 </header>
@@ -272,6 +293,38 @@ function setCoins(n){
   ME = ME || {};
   ME.coins = Number(n || 0);
   if (el('coinVal')) el('coinVal').textContent = money(ME.coins);
+}
+
+/* header bell: how many notifications are waiting */
+function setNotif(n){
+  var v = Number(n || 0);
+  var b = el('notifNum');
+  if (!b) return;
+  if (v <= 0){ b.classList.add('hide'); b.textContent = '0'; return; }
+  b.classList.remove('hide');
+  b.textContent = v > 99 ? '99+' : String(v);
+}
+
+/* unread count on the Chats tab, from the thread list */
+function setChatBadge(n){
+  var btns = document.querySelectorAll('#nav button');
+  for (var i = 0; i < btns.length; i++){
+    if (btns[i].getAttribute('data-tab') !== 'chats') continue;
+    var old = btns[i].querySelector('.tbad');
+    if (n > 0){
+      if (!old){
+        old = document.createElement('span');
+        old.className = 'tbad';
+        var ico = btns[i].querySelector('.ico');
+        if (ico) ico.style.position = 'relative';
+        if (ico) ico.appendChild(old);
+      }
+      old.textContent = n > 99 ? '99+' : String(n);
+    } else if (old){
+      old.parentNode.removeChild(old);
+    }
+    break;
+  }
 }
 
 /* member count in the top bar. Real signups and the profiles the team
@@ -387,6 +440,8 @@ async function boot(){
     ME = r;
     setCoins(r.coins);
     setMembers(r.members);
+    setNotif(r.unread);
+    startPolling();
     el('nav').classList.remove('hide');
     if (r.is_admin) el('navAdmin').classList.remove('hide');
     else el('navAdmin').classList.add('hide');
@@ -1333,6 +1388,8 @@ async function renderChats(){
     var r = await post({ action:'threads' });
     if (!r.ok){ el('chatsBox').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
     setCoins(r.coins);
+    setNotif(r.unread);
+    setChatBadge(r.unread_msg);
     var rows = r.threads || [];
     if (!rows.length){
       el('chatsBox').innerHTML = '<div class="empty glass" style="padding:34px 20px">'
@@ -1345,10 +1402,13 @@ async function renderChats(){
       + rows.map(function(t){
           var av = t.thumb ? '<img class="avatar" src="' + t.thumb + '">'
                            : '<div class="avatar">' + esc(initial(t.name)) + '</div>';
+          var un = Number(t.unread || 0);
           return '<div class="item" onclick="openChat(\'' + esc(t.uid) + '\')">' + av
             + '<div class="txt"><div class="nm">' + esc(t.name) + '</div>'
             + '<div class="ms">' + esc(t.last || '') + '</div></div>'
-            + '<div style="font-size:9.5px;color:#9ca3af;text-align:right;flex:none">' + when(t.ts) + '</div></div>';
+            + '<div style="font-size:9.5px;color:#9ca3af;text-align:right;flex:none">'
+            + (un > 0 ? '<span class="tbad" style="margin-left:auto">' + (un > 99 ? '99+' : un) + '</span><br>' : '')
+            + when(t.ts) + '</div></div>';
         }).join('') + '</div>';
   } catch(e){ el('chatsBox').innerHTML = '<div class="warn">' + esc(e.message) + '</div>'; }
 }
@@ -1356,6 +1416,84 @@ async function renderChats(){
 async function startChat(uid){
   closeModal();
   await openChat(uid);
+}
+
+/* ---------------- notification bell ---------------- */
+var NOTIF_TIMER = null;
+
+function nIcon(k){
+  if (k === 'msg') return '&#128172;';
+  if (k === 'like') return '&#10084;&#65039;';
+  if (k === 'follow') return '&#11088;';
+  if (k === 'comment') return '&#128172;';
+  if (k === 'money') return '&#129689;';
+  return '&#128276;';
+}
+
+async function openNotifs(){
+  openModal('<div class="spin"></div>');
+  try {
+    var r = await post({ action:'notifs' });
+    if (!r.ok){ closeModal(); toast(esc(r.error)); return; }
+    var rows = r.notifs || [];
+    if (!rows.length){
+      openModal('<div class="h2">Notifications</div>'
+        + '<div class="empty" style="padding:26px 12px">'
+        + '<div style="font-size:32px;margin-bottom:8px">&#128276;</div>'
+        + esc(T('no_notifs', 'Nothing yet. New messages, likes and follows appear here.'))
+        + '</div>');
+      return;
+    }
+    var body = rows.map(function(n){
+      var unread = Number(n.r || 0) !== 1;
+      return '<div class="nrow' + (unread ? ' unread' : '') + '"'
+        + (n.uid ? ' onclick="closeModal();openChat(\'' + esc(n.uid) + '\')"' : '')
+        + ' style="' + (n.uid ? 'cursor:pointer' : '') + '">'
+        + '<div class="nico">' + nIcon(n.k) + '</div>'
+        + '<div class="ntxt">' + esc(n.t)
+        + '<div class="who">' + when(n.ts) + '</div></div>'
+        + (unread ? '<span class="nun"></span>' : '') + '</div>';
+    }).join('');
+    openModal('<div style="display:flex;justify-content:space-between;align-items:center">'
+      + '<div class="h2" style="margin:0">Notifications</div>'
+      + '<button class="btn sm ghost" style="flex:none" onclick="clearNotifs()">Clear all</button></div>'
+      + '<div style="margin-top:8px">' + body + '</div>');
+    setNotif(0);
+    post({ action:'notif_read' });
+  } catch(e){
+    closeModal(); toast('Failed: ' + esc(e.message));
+  }
+}
+
+async function clearNotifs(){
+  try {
+    await post({ action:'notif_clear' });
+    setNotif(0);
+    closeModal();
+    toast('Notifications cleared.');
+  } catch(e){ toast(esc(e.message)); }
+}
+
+/* one light request every few seconds keeps the bell and chat badge honest */
+async function pollNotifs(){
+  if (!API) return;
+  try {
+    var r = await post({ action:'poll' });
+    if (!r || !r.ok) return;
+    setNotif(r.unread);
+    setChatBadge(r.unread_msg);
+    if (typeof setCoins === 'function' && r.coins !== undefined) setCoins(r.coins);
+    // a new message arrived while the chat was open: pull it at once
+    if (OPEN_CHAT && el('chatBox') && Number(r.unread_msg || 0) > 0){
+      loadChat(true);
+    }
+  } catch(e){}
+}
+
+function startPolling(){
+  if (NOTIF_TIMER) clearInterval(NOTIF_TIMER);
+  NOTIF_TIMER = setInterval(pollNotifs, 5000);
+  pollNotifs();
 }
 
 async function openChat(uid){
@@ -1378,10 +1516,11 @@ async function openChat(uid){
   el('chatTxt').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMsg(); });
   await loadChat();
   if (CHAT_TIMER) clearInterval(CHAT_TIMER);
-  CHAT_TIMER = setInterval(loadChat, 9000);
+  // silent refresh: new bubbles appear without the screen flickering
+  CHAT_TIMER = setInterval(function(){ loadChat(true); }, 3000);
 }
 
-async function loadChat(){
+async function loadChat(silent){
   if (!OPEN_CHAT) return;
   try {
     var r = await post({ action:'chat', uid:OPEN_CHAT });
@@ -1391,10 +1530,14 @@ async function loadChat(){
     if (el('chatPrice')) el('chatPrice').textContent = 'Each message you send costs ' + r.msg_price + ' coins.';
     var box = el('chatBox');
     if (!box) return;
-    if (!(r.messages || []).length){
+    var msgs = r.messages || [];
+    // nothing new and nothing missing: leave the screen exactly as it is, so
+    // the chat never flickers or jumps while you are reading or typing
+    if (silent && msgs.length === box.querySelectorAll('.bub').length) return;
+    if (!msgs.length){
       box.innerHTML = '<div class="empty" style="padding:26px 12px">Say hello to ' + esc(r.name) + '.</div>';
     } else {
-      box.innerHTML = r.messages.map(function(m){
+      box.innerHTML = msgs.map(function(m){
         return '<div class="bub ' + (m.me ? 'me' : 'them') + '">' + esc(m.txt)
           + '<span class="t">' + when(m.ts) + '</span></div>';
       }).join('');
@@ -1408,12 +1551,27 @@ async function sendMsg(){
   var t = (inp.value || '').trim();
   if (!t || !OPEN_CHAT) return;
   inp.value = '';
+  // show the bubble at once, so sending never feels slow
+  var box = el('chatBox');
+  if (box){
+    var empty = box.querySelector('.empty');
+    if (empty) box.innerHTML = '';
+    var d = document.createElement('div');
+    d.className = 'bub me';
+    d.innerHTML = esc(t) + '<span class="t">sending...</span>';
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
   try {
     var r = await post({ action:'send', uid:OPEN_CHAT, text:t });
-    if (!r.ok){ toast(esc(r.error)); inp.value = t; return; }
+    if (!r.ok){ toast(esc(r.error)); inp.value = t; loadChat(); return; }
     setCoins(r.coins);
     await loadChat();
-  } catch(e){ toast('Failed: ' + esc(e.message)); inp.value = t; }
+  } catch(e){
+    toast('Failed: ' + esc(e.message));
+    inp.value = t;
+    loadChat();
+  }
 }
 
 /* ---------------- wallet ---------------- */
