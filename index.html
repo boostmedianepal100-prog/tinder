@@ -258,6 +258,7 @@ var API = QS.get('api') || '';
 var ME = null;
 var TAB = QS.get('tab') || 'discover';
 var FEED = [];
+var FEED_TOTAL = 0;
 var FEED_FILTER = { category: 'All', gender: 'All' };
 var OPEN_CHAT = null;
 var CHAT_TIMER = null;
@@ -618,8 +619,21 @@ async function renderDiscover(){
       gender: FEED_FILTER.gender, offset: 0 });
     if (!r.ok){ el('feedBox').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
     FEED = r.profiles || [];
+    FEED_TOTAL = Number(r.total || 0);
     setCoins(r.coins);
-    el('feedCount').textContent = FEED.length ? FEED.length + ' shown' : 'nobody yet';
+    var c = el('feedCount');
+    if (c){
+      if (!FEED.length){
+        c.textContent = 'nobody yet';
+      } else if (Number(r.broadened || 0) === 1){
+        /* the filter matched nothing, so the app widened it */
+        c.textContent = FEED.length + ' shown - filter widened';
+      } else if (Number(r.recycled || 0) === 1){
+        c.textContent = FEED.length + ' shown - you have seen everyone';
+      } else {
+        c.textContent = FEED.length + ' of ' + FEED_TOTAL + ' profiles';
+      }
+    }
     drawFeed();
   } catch(e){
     el('feedBox').innerHTML = '<div class="warn">Could not load: ' + esc(e.message) + '</div>';
@@ -1434,23 +1448,14 @@ function hostPost(cfg, file, prog){
   });
 }
 
-/* Hosts are tried in this order. Only hosts that serve the file as a real
-   video (right content type, no forced download) are listed first, otherwise
-   the clip uploads fine and then refuses to play. */
+/* Only hosts that KEEP the file and serve it as a playable video are listed.
+   Temporary hosts are deliberately excluded: a clip that uploads fine and then
+   expires an hour later is worse than an upload that fails honestly now. */
 var VID_HOSTS = [
   { name: 'Catbox', url: 'https://catbox.moe/user/api.php', fileField: 'fileToUpload',
     fields: { reqtype: 'fileupload' }, json: false },
-  { name: 'Litterbox', url: 'https://litterbox.catbox.moe/resources/internals/api.php',
-    fileField: 'fileToUpload', fields: { reqtype: 'fileupload', time: '72h' }, json: false },
-  { name: 'TmpFiles', url: 'https://tmpfiles.org/api/v1/upload', fileField: 'file',
-    fields: {}, json: true,
-    pick: function(j){
-      var u = (j && j.data && j.data.url) ? String(j.data.url) : '';
-      /* tmpfiles gives a page link; this is the direct file behind it */
-      return u.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-    } },
   { name: '0x0.st', url: 'https://0x0.st', fileField: 'file',
-    fields: { expires: '360' }, json: false }
+    fields: {}, json: false }
 ];
 
 /* Can this browser actually play that address? This is the only honest test:
