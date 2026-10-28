@@ -169,6 +169,20 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
   display:flex;align-items:center;justify-content:center;overflow:hidden;background:#000;border-radius:20px}
 .vslide .vv{width:100%;height:100%;object-fit:contain;background:#000}
 .vslide .vbad{padding:24px;text-align:center;color:#fca5a5;font-size:13px;line-height:1.6}
+.vplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,.5);
+  border:2px solid rgba(255,255,255,.85);color:#fff;font-size:24px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  z-index:5;padding-left:4px}
+.vplay.hide{display:none}
+.vload{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  color:#fff;font-size:12px;background:rgba(0,0,0,.6);padding:8px 14px;
+  border-radius:999px;z-index:6;display:none}
+.vdead{position:absolute;left:16px;right:16px;top:50%;transform:translateY(-50%);
+  background:rgba(20,8,18,.92);border:1px solid rgba(244,63,94,.5);border-radius:14px;
+  padding:16px;text-align:center;color:#fca5a5;font-size:13px;line-height:1.6;z-index:7;display:none}
+.vdead.show{display:block}
+.vdead .btn{margin-top:10px}
 .vslide .vgrad{position:absolute;left:0;right:0;bottom:0;height:52%;pointer-events:none;
   background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.35) 55%,transparent)}
 .vslide .vmeta{position:absolute;left:14px;right:76px;bottom:16px;pointer-events:none}
@@ -642,10 +656,17 @@ function drawFeed(){
     return;
   }
   var p = FEED[0];
-  var img = p.thumb
-    ? '<img class="photo" id="coverImg" src="' + p.thumb + '" alt="" '
-      + 'style="filter:blur(2px);transform:scale(1.02);transition:filter .25s">'
-    : '<div class="noPhoto">' + esc(initial(p.name)) + '</div>';
+  var img = '';
+  if (p.photos > 0){
+    /* this person HAS a photo, so never draw a letter: if the small preview
+       did not travel with the card, upgradeCover() fetches the real one */
+    img = p.thumb
+      ? '<img class="photo" id="coverImg" src="' + p.thumb + '" alt="" '
+        + 'style="filter:blur(2px);transform:scale(1.02);transition:filter .25s">'
+      : '<div class="photo noPhoto loading" id="coverWrap"><div class="spin"></div></div>';
+  } else {
+    img = '<div class="noPhoto">' + esc(initial(p.name)) + '</div>';
+  }
   box.innerHTML = '<div class="card" onclick="openProfile(\'' + esc(p.uid) + '\')">' + img
     + '<div class="grad">'
     + '<div class="nm">' + esc(p.name) + ', ' + esc(p.age) + ' ' + onDot(p) + '</div>'
@@ -672,17 +693,35 @@ function drawFeed(){
   upgradeCover(p);
 }
 
-/* the light preview shows at once, the sharp version replaces it a moment later */
+/* the light preview shows at once, the sharp version replaces it a moment later.
+   Also the rescue path: when a card arrived with no preview at all, this asks
+   for the real photo so a member with pictures is never shown as a letter. */
 async function upgradeCover(p){
-  if (!p || !p.thumb || !p.slot) return;
+  if (!p || !p.uid) return;
+  if (!p.photos && !p.slot) return;
+  var slot = p.slot || 1;
   try {
-    var r = await post({ action:'img', uid:p.uid, slot:p.slot, size:'f' });
+    var r = await post({ action:'img', uid:p.uid, slot:slot, size:'f' });
     if (!r || !r.ok || !r.data) return;
     var n = el('coverImg');
-    if (!n || FEED[0] !== p) return;
+    if (!n){
+      var wrap = el('coverWrap');
+      if (!wrap) return;
+      if (FEED[0] !== p) return;
+      wrap.className = 'photo';
+      wrap.innerHTML = '<img class="photo" id="coverImg" alt="" style="width:100%;height:100%;object-fit:cover">';
+      n = el('coverImg');
+      if (!n) return;
+    }
+    if (FEED[0] !== p) return;
     n.onload = function(){
       n.style.filter = 'none';
       n.style.transform = 'none';
+    };
+    /* the picture really is not there: show the letter instead of a dark box */
+    n.onerror = function(){
+      var card = n.parentNode;
+      if (card) card.innerHTML = '<div class="noPhoto">' + esc(initial(p.name)) + '</div>';
     };
     n.src = r.data;
     if (n.complete && n.naturalWidth > 0){ n.style.filter = 'none'; n.style.transform = 'none'; }
@@ -917,9 +956,16 @@ function slideHtml(v){
   if (v.age) head = head + ', ' + esc(v.age);
   var body = '';
   if (v.url){
-    body = '<video class="vv" data-id="' + esc(v.id) + '" src="' + esc(v.url) + '"'
+    body = '<video class="vv" data-id="' + esc(v.id) + '" data-src="' + esc(v.url) + '"'
       + (v.poster ? ' poster="' + esc(v.poster) + '"' : '')
-      + ' playsinline webkit-playsinline muted loop preload="none"></video>';
+      + ' playsinline webkit-playsinline muted loop preload="metadata"></video>'
+      + '<div class="vload">Loading...</div>'
+      + '<div class="vdead">'
+      + '<div>This clip could not be played here.</div>'
+      + '<button class="btn sm" onclick="vOpenLink(\'' + esc(v.id) + '\')">Open the video</button>'
+      + '<button class="btn sm ghost" onclick="vRetry(\'' + esc(v.id) + '\')">Try again</button>'
+      + '</div>'
+      + '<div class="vplay" data-id="' + esc(v.id) + '">&#9654;</div>';
   } else {
     body = '<div class="vbad">This video cannot play here.<br>'
       + 'The link is not a direct video file.</div>';
@@ -959,20 +1005,126 @@ function paintSlides(){
   box.onscroll = function(){
     if (box.scrollTop + box.clientHeight > box.scrollHeight - 500) vMore();
   };
-  box.onclick = function(ev){
-    var t = ev.target;
-    var v = null;
-    if (t && t.tagName === 'VIDEO') v = t;
-    if (!v) return;
-    if (v.muted){
-      v.muted = false;
-      try { v.play(); } catch(e){}
-    } else {
-      if (v.paused){ try { v.play(); } catch(e){} }
-      else v.muted = true;
-    }
-  };
+  wireSlides();
   observeSlides();
+}
+
+/* tapping the picture or the play button starts the clip */
+function wireSlides(){
+  var vids = document.querySelectorAll('.vslide video');
+  for (var i = 0; i < vids.length; i++){
+    (function(v){
+      /* wire each clip once, or a second tap would cancel the first */
+      if (v.getAttribute('data-wired') === '1') return;
+      v.setAttribute('data-wired', '1');
+      var slide = v.parentNode;
+      v.addEventListener('error', function(){ vDead(v, true); });
+      v.addEventListener('stalled', function(){ vBusy(v, true); });
+      v.addEventListener('waiting', function(){ vBusy(v, true); });
+      v.addEventListener('canplay', function(){ vBusy(v, false); });
+      v.addEventListener('playing', function(){
+        vBusy(v, false);
+        vDead(v, false);
+        vPlayBtn(v, false);
+      });
+      v.addEventListener('pause', function(){
+        if (Number(v.currentTime || 0) > 0) vPlayBtn(v, true);
+      });
+      v.onclick = function(){ toggleVid(v); };
+      if (slide){
+        var b = slide.querySelector('.vplay');
+        if (b) b.onclick = function(ev){
+          if (ev && ev.stopPropagation) ev.stopPropagation();
+          toggleVid(v);
+        };
+      }
+    })(vids[i]);
+  }
+}
+
+/* give a clip its real source if it does not have one yet */
+function applySrc(v){
+  if (!v) return;
+  var cur = v.getAttribute('src');
+  if (cur && cur !== '') return;
+  var src = String(v.getAttribute('data-src') || '');
+  if (src === '') return;
+  v.setAttribute('src', src);
+  try { v.load(); } catch(e){}
+}
+
+function vOf(id){
+  var s = document.querySelector('.vslide[data-id="' + id + '"]');
+  return s ? s.querySelector('video') : null;
+}
+function vBusy(v, on){
+  var s = v.parentNode; if (!s) return;
+  var n = s.querySelector('.vload');
+  if (n) n.style.display = on ? 'block' : 'none';
+}
+function vDead(v, on){
+  var s = v.parentNode; if (!s) return;
+  var n = s.querySelector('.vdead');
+  if (n) { if (on) n.classList.add('show'); else n.classList.remove('show'); }
+  var l = s.querySelector('.vload');
+  if (l && on) l.style.display = 'none';
+}
+function vPlayBtn(v, on){
+  var s = v.parentNode; if (!s) return;
+  var n = s.querySelector('.vplay');
+  if (!n) return;
+  if (on) n.classList.remove('hide'); else n.classList.add('hide');
+}
+
+function toggleVid(v){
+  if (!v) return;
+  if (!v.paused){ v.pause(); vPlayBtn(v, true); return; }
+  vDead(v, false);
+  /* the source is only put on the element when it is first played, so a screen
+     full of clips does not download everything at once. Without this line the
+     element has a poster but no video at all, which is exactly the
+     "picture shows, nothing plays" symptom. */
+  applySrc(v);
+  /* a tap should give sound; if the phone refuses sound until it has been
+     touched again, fall back to muted so it still plays */
+  v.muted = false;
+  var p = null;
+  try { p = v.play(); } catch(e){ p = null; }
+  if (p && p.catch){
+    p.catch(function(){
+      v.muted = true;
+      try { v.play(); } catch(e4){}
+    }).then(function(){
+      if (v.paused){
+        try { v.load(); } catch(e2){}
+        v.muted = true;
+        var q = null;
+        try { q = v.play(); } catch(e3){ q = null; }
+        if (q && q.catch) q.catch(function(){ vDead(v, true); });
+      }
+    });
+  }
+}
+
+function vRetry(id){
+  var v = vOf(id);
+  if (!v) return;
+  var src = String(v.getAttribute('data-src') || '');
+  if (src === '') return;
+  vBusy(v, true);
+  vDead(v, false);
+  /* ask for the file again instead of reusing the attempt that failed */
+  v.setAttribute('src', src + (src.indexOf('?') >= 0 ? '&' : '?') + 'r=' + Date.now());
+  try { v.load(); } catch(e){}
+  toggleVid(v);
+}
+
+function vOpenLink(id){
+  var v = findVid(id);
+  if (!v || !v.url){ toast('No link for this video.'); return; }
+  var w = null;
+  try { w = window.open(v.url, '_blank'); } catch(e){ w = null; }
+  if (!w){ try { location.href = v.url; } catch(e2){ toast('Use Share to copy the link.'); } }
 }
 
 function observeSlides(){
@@ -983,7 +1135,12 @@ function observeSlides(){
         var v = e.target.querySelector('video');
         if (!v) continue;
         if (e.intersectionRatio >= 0.55){
-          try { v.play(); } catch(err){}
+          /* scrolling onto a clip must give it its source too */
+          applySrc(v);
+          try {
+            var p = v.play();
+            if (p && p.catch) p.catch(function(){});
+          } catch(err){}
         } else {
           try { v.pause(); } catch(err){}
         }
@@ -1021,7 +1178,11 @@ async function vMore(){
       /* nothing new came back: stop asking, or the same batch repeats */
       if (fresh === 0 || told <= VID.next) VID.next = 0;
       else VID.next = told;
-      if (fresh > 0) observeSlides();
+      if (fresh > 0){
+        /* new clips need the play button wired too, or they never start */
+        wireSlides();
+        observeSlides();
+      }
     } else {
       VID.next = 0;
     }
@@ -1273,11 +1434,14 @@ function hostPost(cfg, file, prog){
   });
 }
 
+/* Hosts are tried in this order. Only hosts that serve the file as a real
+   video (right content type, no forced download) are listed first, otherwise
+   the clip uploads fine and then refuses to play. */
 var VID_HOSTS = [
   { name: 'Catbox', url: 'https://catbox.moe/user/api.php', fileField: 'fileToUpload',
     fields: { reqtype: 'fileupload' }, json: false },
-  { name: '0x0.st', url: 'https://0x0.st', fileField: 'file',
-    fields: { expires: '360' }, json: false },
+  { name: 'Litterbox', url: 'https://litterbox.catbox.moe/resources/internals/api.php',
+    fileField: 'fileToUpload', fields: { reqtype: 'fileupload', time: '72h' }, json: false },
   { name: 'TmpFiles', url: 'https://tmpfiles.org/api/v1/upload', fileField: 'file',
     fields: {}, json: true,
     pick: function(j){
@@ -1285,19 +1449,55 @@ var VID_HOSTS = [
       /* tmpfiles gives a page link; this is the direct file behind it */
       return u.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
     } },
-  { name: 'Litterbox', url: 'https://litterbox.catbox.moe/resources/internals/api.php',
-    fileField: 'fileToUpload', fields: { reqtype: 'fileupload', time: '72h' }, json: false }
+  { name: '0x0.st', url: 'https://0x0.st', fileField: 'file',
+    fields: { expires: '360' }, json: false }
 ];
 
-/* tries every free host until one accepts the file */
+/* Can this browser actually play that address? This is the only honest test:
+   a host can accept an upload and still serve it as a download, which looks
+   like a picture that never plays. */
+function canPlayUrl(url, ms){
+  return new Promise(function(resolve){
+    var v = document.createElement('video');
+    var done = false;
+    var timer = null;
+    function finish(ok){
+      if (done) return;
+      done = true;
+      if (timer) clearTimeout(timer);
+      try { v.removeAttribute('src'); v.load(); } catch(e){}
+      resolve(ok);
+    }
+    v.muted = true;
+    v.setAttribute('playsinline', '');
+    v.preload = 'metadata';
+    v.onloadedmetadata = function(){ finish(true); };
+    v.onloadeddata = function(){ finish(true); };
+    v.onerror = function(){ finish(false); };
+    timer = setTimeout(function(){ finish(false); }, ms || 15000);
+    v.src = url;
+    try { v.load(); } catch(e){ finish(false); }
+  });
+}
+
+/* tries every free host until one gives back a link this phone can play */
 function uploadVideo(file, prog){
   var errs = [];
   function attempt(i){
     if (i >= VID_HOSTS.length){
-      return Promise.reject(new Error('No video host accepted the file (' + errs.join(', ')
-        + '). Try a shorter clip or paste a video link.'));
+      return Promise.reject(new Error('No host gave a playable video ('
+        + errs.join('; ') + '). Try a shorter clip, or use an mp4 file.'));
     }
-    return hostPost(VID_HOSTS[i], file, prog).catch(function(e){
+    var host = VID_HOSTS[i];
+    return hostPost(host, file, prog).then(function(u){
+      if (prog) prog(100);
+      return canPlayUrl(u).then(function(ok){
+        if (ok) return u;
+        errs.push(host.name + ' link not playable');
+        if (prog) prog(0);
+        return attempt(i + 1);
+      });
+    }).catch(function(e){
       errs.push(e.message);
       if (prog) prog(0);
       return attempt(i + 1);
@@ -1362,6 +1562,18 @@ async function vSubmit(){
       b.textContent = 'Post it';
       return;
     }
+    /* a pasted link must be checked too: a page link or an expired file
+       would post fine and then never play for anybody */
+    b.textContent = 'Checking the video...';
+    var playable = await canPlayUrl(url, 15000);
+    if (!playable){
+      vNote('That address will not play as a video on a phone. Use a direct '
+        + 'mp4 link (it must end in .mp4), or pick the file from your phone instead.');
+      b.disabled = false;
+      b.textContent = 'Post it';
+      return;
+    }
+    b.textContent = 'Posting...';
     var r = await post({ action:'vpost', url:url, cap:cap,
       poster:VIDEO_POSTER || '', dur:VIDEO_DUR || 0 });
     if (!r.ok){
