@@ -204,6 +204,9 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wtitle{font-size:10.5px;color:#9ca3af;margin-top:1px;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
+.wprice{position:absolute;left:6px;bottom:6px;background:rgba(10,4,10,.78);
+  color:#fcd34d;font-size:10.5px;font-weight:800;padding:3px 8px;
+  border-radius:999px;border:1px solid rgba(252,211,77,.4)}
 .vslide .vgrad{position:absolute;left:0;right:0;bottom:0;height:52%;pointer-events:none;
   background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.35) 55%,transparent)}
 .vslide .vmeta{position:absolute;left:14px;right:76px;bottom:16px;pointer-events:none}
@@ -262,7 +265,7 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
 
 <nav id="nav" class="hide">
   <button data-tab="discover" class="on"><span class="ico">&#128293;</span>Discover</button>
-  <button data-tab="videos"><span class="ico">&#127916;</span>Watch</button>
+  <button data-tab="videos" id="navVideos"><span class="ico">&#127916;</span>Watch</button>
   <button data-tab="chats"><span class="ico">&#128172;</span>Chats</button>
   <button data-tab="wallet"><span class="ico">&#128176;</span>Wallet</button>
   <button data-tab="me"><span class="ico">&#128100;</span>Profile</button>
@@ -281,7 +284,7 @@ var TAB = QS.get('tab') || 'discover';
 var FEED = [];
 var FEED_TOTAL = 0;
 var WATCH = [];
-var WATCH_PRICE = 500;
+var WATCH_DEFAULT = 500;
 var FEED_FILTER = { category: 'All', gender: 'All' };
 var OPEN_CHAT = null;
 var CHAT_TIMER = null;
@@ -334,6 +337,15 @@ function setCoins(n){
 }
 
 /* header bell: how many notifications are waiting */
+/* Watch only exists once the team has published a video. Members never see an
+   empty section; staff always see it so they can add the first one. */
+function setWatchTab(n){
+  var b = el('navVideos');
+  if (!b) return;
+  var show = Number(n || 0) > 0 || (ME && ME.is_admin);
+  if (show) b.classList.remove('hide'); else b.classList.add('hide');
+}
+
 function setNotif(n){
   var v = Number(n || 0);
   var b = el('notifNum');
@@ -479,6 +491,7 @@ async function boot(){
     setCoins(r.coins);
     setMembers(r.members);
     setNotif(r.unread);
+    setWatchTab(r.wcount);
     startPolling();
     el('nav').classList.remove('hide');
     if (r.is_admin) el('navAdmin').classList.remove('hide');
@@ -924,16 +937,15 @@ function findVid(id){
   return null;
 }
 
-/* ---------------- Watch: paid video, played on Telegram ---------------- */
+/* ---------------- Watch: paid videos set by the team ---------------- */
 async function renderVideos(){
-  el('stage').innerHTML = header('Watch', 'Pay once, then watch it on Telegram')
+  el('stage').innerHTML = header('Watch')
     + '<div id="watchBox"><div class="spin"></div></div>';
   try {
     var r = await post({ action:'watch_list' });
     if (!r.ok){ el('watchBox').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
     setCoins(r.coins);
     WATCH = r.videos || [];
-    WATCH_PRICE = Number(r.price || 500);
     drawWatch();
   } catch(e){
     el('watchBox').innerHTML = '<div class="warn">Could not load: ' + esc(e.message) + '</div>';
@@ -950,77 +962,97 @@ function drawWatch(){
       + '</div>';
     return;
   }
-  box.innerHTML = '<p class="sub" style="margin-bottom:10px">Each video costs <b style="color:#fcd34d">'
-    + WATCH_PRICE + ' coins</b>. After paying, it opens on Telegram.</p>'
-    + '<div class="wgrid">' + WATCH.map(function(v){
+  box.innerHTML = '<div class="wgrid">' + WATCH.map(function(v){
         var locked = Number(v.unlocked || 0) !== 1;
         var img = v.thumb
           ? '<img src="' + v.thumb + '" alt="">'
-          : '<div class="wno">' + esc(initial(v.name)) + '</div>';
+          : '<div class="wno">&#127916;</div>';
         return '<div class="wcard">'
-          + '<div class="wthumb" onclick="watchOpen(\'' + esc(v.uid) + '\')">' + img
+          + '<div class="wthumb" onclick="watchOpen(\'' + esc(v.id) + '\')">' + img
           + (locked
-              ? '<div class="wlock">&#128274;<span>' + WATCH_PRICE + '</span></div>'
+              ? '<div class="wlock">&#128274;<span>' + esc(v.price) + '</span></div>'
               : '<div class="wplay">&#9654;</div>')
-          + (Number(v.online || 0) === 1 ? '<span class="won"></span>' : '')
+          + '<span class="wprice">' + esc(v.price) + ' coins</span>'
           + '</div>'
-          + '<div class="wname">' + esc(v.name) + (v.age ? ', ' + esc(v.age) : '') + '</div>'
-          + (v.title ? '<div class="wtitle">' + esc(v.title) + '</div>' : '')
+          + (v.title ? '<div class="wname">' + esc(v.title) + '</div>' : '')
           + '<button class="btn sm ' + (locked ? 'amber' : 'green') + '" '
-          + 'style="width:100%;margin-top:6px" onclick="watchOpen(\'' + esc(v.uid) + '\')">'
-          + (locked ? 'Unlock ' + WATCH_PRICE : 'Watch') + '</button>'
+          + 'style="width:100%;margin-top:6px" onclick="watchOpen(\'' + esc(v.id) + '\')">'
+          + (locked ? 'Watch / ' + esc(v.price) : 'Watch again') + '</button>'
           + '</div>';
       }).join('') + '</div>';
 }
 
-/* pay if needed, then hand the member over to Telegram to watch */
-async function watchOpen(uid){
+/* pay this video's own price once, then hand the member to Telegram */
+async function watchOpen(id){
   var v = null;
   for (var i = 0; i < WATCH.length; i++){
-    if (WATCH[i].uid === uid) v = WATCH[i];
+    if (WATCH[i].id === id) v = WATCH[i];
   }
   if (!v) return;
+  var price = Number(v.price || 0);
+  /* ask before taking coins; one already paid for is handed over silently */
   if (Number(v.unlocked || 0) !== 1){
     var ok = false;
-    try { ok = window.confirm('Unlock this video for ' + WATCH_PRICE + ' coins?'); } catch(e){ ok = true; }
+    try { ok = window.confirm('Watch this video for ' + price + ' coins?'); } catch(e){ ok = true; }
     if (!ok) return;
-    try {
-      var r = await post({ action:'watch_unlock', uid:uid });
-      if (!r.ok){ toast(esc(r.error)); return; }
-      setCoins(r.coins);
-      v.unlocked = 1;
-      drawWatch();
-      openTg(r.tg);
-    } catch(e2){ toast('Failed: ' + esc(e2.message)); }
-    return;
   }
-  openTg(v.tg || '');
+  try {
+    /* always ask the server: it knows if this member already paid, and only
+       it can hand out the link */
+    var r = await post({ action:'watch_unlock', id:id });
+    if (!r.ok){ toast(esc(r.error)); return; }
+    setCoins(r.coins);
+    v.unlocked = 1;
+    /* the link is only ever given out after payment */
+    v.link = r.tg;
+    if (r.price) v.price = Number(r.price);
+    drawWatch();
+    if (Number(r.charged || 0) > 0) toast(r.charged + ' coins taken.', 3000);
+    openTg(r.tg);
+  } catch(e2){ toast('Failed: ' + esc(e2.message)); }
 }
 
-/* admin: set the Telegram link and thumbnail a member pays to open */
-async function watchEdit(uid){
-  var name = '';
-  try {
-    var r0 = await post({ action:'a_user', uid:uid });
-    if (r0.ok && r0.profile) name = String(r0.profile.name || '');
-  } catch(e){}
-  openModal('<div class="h2">Watch video for ' + esc(name || uid) + '</div>'
-    + '<div class="sub" style="margin-bottom:8px">Members pay ' + WATCH_PRICE
-    + ' coins, then this link opens on Telegram.</div>'
-    + '<input id="wtTg" placeholder="https://t.me/... or a video link" style="width:100%">'
-    + '<input id="wtTitle" placeholder="Short title (optional)" style="width:100%;margin-top:8px">'
-    + '<div style="margin-top:10px"><div class="sub">Thumbnail</div>'
-    + '<div id="wtThumbBox" style="margin-top:6px"></div>'
+/* admin: videos are their own items - a picture, a price and a link */
+var WATCH_ADMIN = [];
+
+function watchForm(id, cur){
+  var c = cur || {};
+  openModal('<div class="h2">' + (id ? 'Edit video' : 'Add a video') + '</div>'
+    + '<div class="sub" style="margin-bottom:8px">Members pay the price below, then '
+    + 'this link opens for them.</div>'
+    + '<div class="field"><label class="lbl">TITLE</label>'
+    + '<input id="wtTitle" value="' + esc(c.title || '') + '" placeholder="What it is called"></div>'
+    + '<div class="field" style="margin-top:8px"><label class="lbl">TELEGRAM LINK TO OPEN</label>'
+    + '<input id="wtTg" value="' + esc(c.tg || '') + '" placeholder="https://t.me/..."></div>'
+    + '<div class="field" style="margin-top:8px"><label class="lbl">COINS TO WATCH</label>'
+    + '<input id="wtPrice" type="number" value="' + esc(c.price || 500) + '"></div>'
+    + '<div style="margin-top:10px"><div class="sub">Thumbnail (a picture shown in the list)</div>'
+    + (c.thumb ? '<img src="' + c.thumb + '" style="width:110px;border-radius:10px;margin-top:6px">' : '')
     + '<input id="wtThumb" type="file" accept="image/*" style="margin-top:8px"></div>'
     + '<div class="row" style="margin-top:12px">'
-    + '<button class="btn" onclick="watchSave(\'' + esc(uid) + '\')">Save</button>'
-    + '<button class="btn red" onclick="watchClear(\'' + esc(uid) + '\')">Remove</button></div>');
+    + '<button class="btn" onclick="watchSave(\'' + esc(id || '') + '\')">Save</button>'
+    + (id ? '<button class="btn red" onclick="watchDel(\'' + esc(id) + '\')">Delete</button>' : '')
+    + '</div>');
 }
 
-async function watchSave(uid){
+function watchAdd(){
+  watchForm('', { price: WATCH_DEFAULT });
+}
+
+function watchEdit(id){
+  var c = null;
+  for (var i = 0; i < WATCH_ADMIN.length; i++){
+    if (WATCH_ADMIN[i].id === id) c = WATCH_ADMIN[i];
+  }
+  watchForm(id, c || {});
+}
+
+async function watchSave(id){
   var tg = (el('wtTg').value || '').trim();
   var tt = (el('wtTitle').value || '').trim();
+  var pr = parseInt(el('wtPrice').value || '0', 10);
   if (!tg){ toast('Paste the link members should open.'); return; }
+  if (!pr || pr < 1){ toast('Set the coin price for this video.'); return; }
   var thumb = '';
   var f = el('wtThumb').files[0];
   if (f){
@@ -1028,19 +1060,20 @@ async function watchSave(uid){
     if (thumb && thumb.length > 90000) thumb = '';
   }
   try {
-    var r = await post({ action:'a_watch_set', uid:uid, tg:tg, title:tt, thumb:thumb });
+    var r = await post({ action:'a_watch_set', id:id, tg:tg, title:tt,
+                         price:pr, thumb:thumb });
     if (!r.ok){ toast(esc(r.error)); return; }
-    toast('Saved. It is now on the Watch list.');
+    toast(id ? 'Video updated.' : 'Video added to Watch.');
     closeModal();
     renderAdmin();
   } catch(e2){ toast('Failed: ' + esc(e2.message)); }
 }
 
-async function watchClear(uid){
+async function watchDel(id){
   try {
-    var r = await post({ action:'a_watch_set', uid:uid, tg:'', title:'' });
+    var r = await post({ action:'a_watch_del', id:id });
     if (!r.ok){ toast(esc(r.error)); return; }
-    toast('Removed from Watch.');
+    toast('Video deleted.');
     closeModal();
     renderAdmin();
   } catch(e){ toast('Failed: ' + esc(e.message)); }
@@ -1854,6 +1887,7 @@ async function pollNotifs(){
     if (!r || !r.ok) return;
     setNotif(r.unread);
     setChatBadge(r.unread_msg);
+    setWatchTab(r.wcount);
     if (typeof setCoins === 'function' && r.coins !== undefined) setCoins(r.coins);
     // a new message arrived while the chat was open: pull it at once
     if (OPEN_CHAT && el('chatBox') && Number(r.unread_msg || 0) > 0){
@@ -2391,20 +2425,24 @@ async function loadAdmin(){
     if (ADMIN_TAB === 'watch'){
       var rw2 = await post({ action:'a_watch_grid' });
       if (!rw2.ok){ box.innerHTML = '<div class="warn">' + esc(rw2.error) + '</div>'; return; }
-      var wg = rw2.rows || [];
-      box.innerHTML = '<p class="sub" style="margin-bottom:8px">Members pay ' + esc(rw2.price)
-        + ' coins to watch. Set the link each clip opens on, and its thumbnail.</p>'
-        + (wg.length ? wg.map(function(x){
+      WATCH_ADMIN = rw2.rows || [];
+      WATCH_DEFAULT = Number(rw2.default || 500);
+      box.innerHTML = '<button class="btn" style="width:100%;margin-bottom:10px" '
+        + 'onclick="watchAdd()">+ Add a video</button>'
+        + '<p class="sub" style="margin-bottom:8px">Each video has its own picture, its own '
+        + 'coin price and its own Telegram link. Members pay, then the link opens for them.</p>'
+        + (WATCH_ADMIN.length ? WATCH_ADMIN.map(function(x){
             return '<div class="glass" style="padding:12px;margin-bottom:8px">'
               + '<div style="display:flex;gap:10px;align-items:center">'
-              + (x.thumb ? '<img src="' + x.thumb + '" style="width:46px;height:46px;border-radius:9px;object-fit:cover">'
-                         : '<div class="avatar" style="width:46px;height:46px">' + esc(initial(x.name)) + '</div>')
-              + '<div style="flex:1;min-width:0"><b>' + esc(x.name) + '</b>'
-              + '<div class="sub">' + (Number(x.has || 0) === 1 ? 'link set' : 'no link yet')
-              + (x.title ? ' / ' + esc(x.title) : '') + '</div></div>'
-              + '<button class="btn sm ghost" style="flex:none" onclick="watchEdit(\'' + esc(x.uid) + '\')">Set</button>'
+              + (x.thumb ? '<img src="' + x.thumb + '" style="width:56px;height:56px;border-radius:9px;object-fit:cover">'
+                         : '<div class="avatar" style="width:56px;height:56px">&#127916;</div>')
+              + '<div style="flex:1;min-width:0"><b>' + esc(x.title || 'Untitled') + '</b>'
+              + '<div class="sub" style="color:#fcd34d;font-weight:700">' + esc(x.price) + ' coins to watch</div>'
+              + '<div class="sub">' + esc(x.paid) + ' members paid &middot; ' + esc(x.coins) + ' coins earned</div>'
+              + '<div class="sub" style="word-break:break-all">' + esc(x.tg) + '</div></div>'
+              + '<button class="btn sm ghost" style="flex:none" onclick="watchEdit(\'' + esc(x.id) + '\')">Edit</button>'
               + '</div></div>';
-          }).join('') : '<div class="empty glass">No profiles yet.</div>');
+          }).join('') : '<div class="empty glass">No videos yet. Add one above.</div>');
       return;
     }
 
@@ -2490,7 +2528,7 @@ async function loadAdmin(){
         + '<input id="stCmt" type="number" value="' + esc(s.comment_price) + '"></div></div>'
         + '<div class="row"><div class="field"><label class="lbl">VIDEO CALL COST</label>'
         + '<input id="stCall" type="number" value="' + esc(s.call_price || 700) + '"></div>'
-        + '<div class="field"><label class="lbl">WATCH ONE VIDEO</label>'
+        + '<div class="field"><label class="lbl">DEFAULT VIDEO PRICE</label>'
         + '<input id="stWatch" type="number" value="' + esc(s.watch_price || 500) + '"></div></div>'
         + '<div class="row"><div class="field"><label class="lbl">SIGNUP BONUS</label>'
         + '<input id="stBonus" type="number" value="' + esc(s.signup_bonus) + '"></div>'
