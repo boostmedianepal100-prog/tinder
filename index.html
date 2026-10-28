@@ -30,6 +30,11 @@ header{position:sticky;top:0;z-index:40;background:rgba(21,10,20,.86);backdrop-f
 .memline b{color:#fda4af;font-weight:800}
 .memline .dot{width:5px;height:5px;border-radius:50%;background:#34d399;
   box-shadow:0 0 6px rgba(52,211,153,.9);display:inline-block}
+.ondot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#34d399;
+  box-shadow:0 0 8px rgba(52,211,153,.95);border:1.5px solid rgba(10,6,10,.65);
+  vertical-align:middle;margin-left:2px}
+.offdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#6b7280;
+  border:1.5px solid rgba(10,6,10,.65);vertical-align:middle;margin-left:2px}
 .hbtn{background:none;border:0;color:#fb7185;font-size:16px;padding:6px}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:460px;margin:0 auto;
   background:rgba(26,12,26,.95);backdrop-filter:blur(14px);border-top:1px solid rgba(244,63,94,.22);
@@ -552,6 +557,25 @@ async function renderDiscover(){
   }
 }
 
+/* online dot: created profiles are always online, real members by last seen */
+function onDot(p){
+  var on = Number(p && p.online ? 1 : 0) === 1;
+  if (on) return '<span class="ondot" title="' + esc(T('online', 'Online')) + '"></span>';
+  return '<span class="offdot" title="' + esc(T('offline', 'Offline')) + '"></span>';
+}
+
+/* the words beside the dot */
+function statusLine(p){
+  if (Number(p && p.online ? 1 : 0) === 1){
+    return '<b style="color:#34d399">' + esc(T('online', 'Online')) + '</b>';
+  }
+  var la = Number(p && p.last ? p.last : 0);
+  if (la > 0){
+    return '<span style="color:#9ca3af">' + esc(T('last_seen', 'Last seen')) + ' ' + esc(when(la)) + '</span>';
+  }
+  return '<span style="color:#9ca3af">' + esc(T('offline', 'Offline')) + '</span>';
+}
+
 function drawFeed(){
   var box = el('feedBox');
   if (!box) return;
@@ -569,7 +593,7 @@ function drawFeed(){
     : '<div class="noPhoto">' + esc(initial(p.name)) + '</div>';
   box.innerHTML = '<div class="card" onclick="openProfile(\'' + esc(p.uid) + '\')">' + img
     + '<div class="grad">'
-    + '<div class="nm">' + esc(p.name) + ', ' + esc(p.age) + '</div>'
+    + '<div class="nm">' + esc(p.name) + ', ' + esc(p.age) + ' ' + onDot(p) + '</div>'
     + '<div class="meta">' + esc(p.gender) + ' / ' + esc(p.category)
     + (p.city ? ' / ' + esc(p.city) : '') + '</div>'
     + (p.bio ? '<div class="bio">' + esc(p.bio) + '</div>' : '')
@@ -684,8 +708,8 @@ async function openProfile(uid){
           + '<div class="who">' + when(c.ts) + '</div></div>';
       }).join('');
     }
-    openModal('<div style="font-size:22px;font-weight:800;color:#fda4af">' + esc(r.name) + ', ' + esc(r.age) + '</div>'
-      + '<div class="sub" style="margin-bottom:10px">' + esc(r.gender) + ' / ' + esc(r.category)
+    openModal('<div style="font-size:22px;font-weight:800;color:#fda4af">' + esc(r.name) + ', ' + esc(r.age) + ' ' + onDot(r) + '</div>'
+      + '<div class="sub" style="margin-bottom:10px">' + statusLine(r) + ' &middot; ' + esc(r.gender) + ' / ' + esc(r.category)
       + (r.city ? ' / ' + esc(r.city) : '') + ' / ' + (r.fans || 0) + ' likes</div>'
       + gal
       + (r.bio ? '<p class="sub" style="margin-top:10px">' + esc(r.bio) + '</p>' : '')
@@ -1161,31 +1185,70 @@ function videoKind(f){
   return false;
 }
 
-/* default host: no key, no account, accepts any video file */
-function uploadToCatbox(file, prog){
+/* one free host, tried in order by the chain below. No key, no account. */
+function hostPost(cfg, file, prog){
   return new Promise(function(resolve, reject){
     var fd = new FormData();
-    fd.append('reqtype', 'fileupload');
-    fd.append('fileToUpload', file, (file.name || 'video.mp4'));
+    var keys = Object.keys(cfg.fields);
+    for (var i = 0; i < keys.length; i++) fd.append(keys[i], cfg.fields[keys[i]]);
+    fd.append(cfg.fileField, file, (file.name || 'video.mp4'));
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://catbox.moe/user/api.php', true);
+    xhr.open('POST', cfg.url, true);
     xhr.upload.onprogress = function(e){
       if (e.lengthComputable && prog) prog(Math.round(e.loaded * 100 / e.total));
     };
     xhr.onload = function(){
-      var u = String(xhr.responseText || '').trim();
-      if (u.indexOf('https://') === 0 && u.length < 300){ resolve(u); return; }
-      reject(new Error('The video host refused that file. Try a shorter clip, or paste a video link.'));
+      var raw = String(xhr.responseText || '').trim();
+      var u = '';
+      try {
+        if (cfg.json){
+          var j = JSON.parse(raw);
+          u = String(cfg.pick(j) || '');
+        } else {
+          u = raw;
+        }
+      } catch(e2){ u = ''; }
+      if (u.indexOf('http') === 0 && u.length < 400){ resolve(u); return; }
+      reject(new Error(cfg.name + ' refused that file'));
     };
-    xhr.onerror = function(){
-      reject(new Error('Could not reach the video host. Check your connection, or paste a video link instead.'));
-    };
-    xhr.ontimeout = function(){
-      reject(new Error('The upload timed out. Use a shorter clip or paste a video link.'));
-    };
+    xhr.onerror = function(){ reject(new Error(cfg.name + ' unreachable')); };
+    xhr.ontimeout = function(){ reject(new Error(cfg.name + ' timed out')); };
     xhr.timeout = 300000;
     xhr.send(fd);
   });
+}
+
+var VID_HOSTS = [
+  { name: 'Catbox', url: 'https://catbox.moe/user/api.php', fileField: 'fileToUpload',
+    fields: { reqtype: 'fileupload' }, json: false },
+  { name: '0x0.st', url: 'https://0x0.st', fileField: 'file',
+    fields: { expires: '360' }, json: false },
+  { name: 'TmpFiles', url: 'https://tmpfiles.org/api/v1/upload', fileField: 'file',
+    fields: {}, json: true,
+    pick: function(j){
+      var u = (j && j.data && j.data.url) ? String(j.data.url) : '';
+      /* tmpfiles gives a page link; this is the direct file behind it */
+      return u.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+    } },
+  { name: 'Litterbox', url: 'https://litterbox.catbox.moe/resources/internals/api.php',
+    fileField: 'fileToUpload', fields: { reqtype: 'fileupload', time: '72h' }, json: false }
+];
+
+/* tries every free host until one accepts the file */
+function uploadVideo(file, prog){
+  var errs = [];
+  function attempt(i){
+    if (i >= VID_HOSTS.length){
+      return Promise.reject(new Error('No video host accepted the file (' + errs.join(', ')
+        + '). Try a shorter clip or paste a video link.'));
+    }
+    return hostPost(VID_HOSTS[i], file, prog).catch(function(e){
+      errs.push(e.message);
+      if (prog) prog(0);
+      return attempt(i + 1);
+    });
+  }
+  return attempt(0);
 }
 
 /* optional host the owner can set in Admin > Settings (imgur client id) */
@@ -1230,7 +1293,7 @@ async function vSubmit(){
       };
       try {
         url = VID.cloud ? await uploadToCloud(VID.cloud, VIDEO_FILE)
-                        : await uploadToCatbox(VIDEO_FILE, prog);
+                        : await uploadVideo(VIDEO_FILE, prog);
       } catch(e2){
         vNote(String(e2.message || 'Upload failed. Paste a video link instead.'));
         b.disabled = false;
