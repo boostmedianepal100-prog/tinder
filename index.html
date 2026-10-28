@@ -1044,7 +1044,9 @@ function vNew(){
     + '<p class="sub" style="margin-bottom:10px">It appears in the Videos tab. People can '
     + 'like it, and share it to a member or to any other app.</p>'
     + '<div class="field"><label class="lbl">VIDEO FROM YOUR PHONE</label>'
-    + '<input type="file" id="vFile" accept="video/*" onchange="vPick(this)"></div>'
+    + '<input type="file" id="vFile" accept="video/*,.mp4,.mov,.m4v,.mkv,.webm,.avi,.flv,.3gp,.3g2,.mpg,.mpeg,.ts,.wmv,.ogv" onchange="vPick(this)">'
+    + '<p class="sub" style="margin-top:4px">Any video file up to '
+    + Math.round(VID_MAX / 1048576) + ' MB: mp4, mov, mkv, webm, avi and more.</p></div>'
     + '<div class="field"><label class="lbl">OR A VIDEO LINK</label>'
     + '<input id="vUrl" placeholder="https://....mp4" autocapitalize="off" spellcheck="false"></div>'
     + '<div class="field"><label class="lbl">CAPTION (optional)</label>'
@@ -1056,10 +1058,8 @@ function vNew(){
     + '<button class="btn" id="vGo" onclick="vSubmit()">Post it</button>'
     + '<p class="sub" style="margin-top:8px">Videos you post are yours. You can delete any of '
     + 'them from the video screen at any time.</p>');
-  if (!VID.cloud){
-    vNote('Posting with a link works right away. Uploading straight from your phone needs '
-      + 'the owner to switch on video hosting in Admin > Settings.');
-  }
+  vNote('Pick any video file from your phone, up to '
+    + Math.round(VID_MAX / 1048576) + ' MB, or paste a video link.');
 }
 
 function vNote(t){
@@ -1072,7 +1072,19 @@ function vNote(t){
 function vPick(inp){
   var f = inp.files[0];
   if (!f) return;
+  if (!videoKind(f)){
+    vNote('That file is not a video. Pick an mp4, mov, mkv, webm or avi file.');
+    inp.value = '';
+    return;
+  }
+  if (f.size > VID_MAX){
+    vNote('That file is ' + Math.round(f.size / 1048576) + ' MB. The limit is '
+      + Math.round(VID_MAX / 1048576) + ' MB.');
+    inp.value = '';
+    return;
+  }
   VIDEO_FILE = f;
+  vNote('Selected: ' + (f.name || 'video') + ' · ' + Math.max(1, Math.round(f.size / 1048576)) + ' MB. Press Post it.');
   try {
     var url = URL.createObjectURL(f);
     var v = document.createElement('video');
@@ -1116,6 +1128,48 @@ async function vCoverPick(inp){
   }
 }
 
+var VID_MAX = 60 * 1048576;
+
+function videoKind(f){
+  var t = String(f.type || '').toLowerCase();
+  var n = String(f.name || '').toLowerCase();
+  if (t.indexOf('video/') === 0) return true;
+  var ext = ['.mp4','.mov','.m4v','.mkv','.webm','.avi','.flv','.3gp','.3g2','.mpg',
+             '.mpeg','.ts','.m2ts','.wmv','.ogv','.divx','.f4v'];
+  for (var i = 0; i < ext.length; i++){
+    if (n.length > ext[i].length && n.slice(-ext[i].length) === ext[i]) return true;
+  }
+  return false;
+}
+
+/* default host: no key, no account, accepts any video file */
+function uploadToCatbox(file, prog){
+  return new Promise(function(resolve, reject){
+    var fd = new FormData();
+    fd.append('reqtype', 'fileupload');
+    fd.append('fileToUpload', file, (file.name || 'video.mp4'));
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://catbox.moe/user/api.php', true);
+    xhr.upload.onprogress = function(e){
+      if (e.lengthComputable && prog) prog(Math.round(e.loaded * 100 / e.total));
+    };
+    xhr.onload = function(){
+      var u = String(xhr.responseText || '').trim();
+      if (u.indexOf('https://') === 0 && u.length < 300){ resolve(u); return; }
+      reject(new Error('The video host refused that file. Try a shorter clip, or paste a video link.'));
+    };
+    xhr.onerror = function(){
+      reject(new Error('Could not reach the video host. Check your connection, or paste a video link instead.'));
+    };
+    xhr.ontimeout = function(){
+      reject(new Error('The upload timed out. Use a shorter clip or paste a video link.'));
+    };
+    xhr.timeout = 300000;
+    xhr.send(fd);
+  });
+}
+
+/* optional host the owner can set in Admin > Settings (imgur client id) */
 function uploadToCloud(cid, file){
   return new Promise(function(resolve, reject){
     var fd = new FormData();
@@ -1143,14 +1197,27 @@ async function vSubmit(){
   b.textContent = 'Posting...';
   try {
     if (!url && VIDEO_FILE){
-      if (!VID.cloud){
-        vNote('Uploading from the phone is not switched on. Paste a video link instead.');
+      if (VIDEO_FILE.size > VID_MAX){
+        vNote('That file is ' + Math.round(VIDEO_FILE.size / 1048576) + ' MB. The limit is '
+          + Math.round(VID_MAX / 1048576) + ' MB. Use a shorter clip or paste a video link.');
         b.disabled = false;
         b.textContent = 'Post it';
         return;
       }
-      b.textContent = 'Uploading the video...';
-      url = await uploadToCloud(VID.cloud, VIDEO_FILE);
+      b.textContent = 'Uploading... 0%';
+      var prog = function(p){
+        var bb = el('vGo');
+        if (bb) bb.textContent = 'Uploading... ' + p + '%';
+      };
+      try {
+        url = VID.cloud ? await uploadToCloud(VID.cloud, VIDEO_FILE)
+                        : await uploadToCatbox(VIDEO_FILE, prog);
+      } catch(e2){
+        vNote(String(e2.message || 'Upload failed. Paste a video link instead.'));
+        b.disabled = false;
+        b.textContent = 'Post it';
+        return;
+      }
     }
     if (!url){
       vNote('Choose a video from your phone or paste a link first.');
@@ -1800,16 +1867,16 @@ async function loadAdmin(){
         + '<div class="glass" style="padding:12px;margin-top:10px">'
         + '<div class="h2">Videos</div>'
         + '<p class="sub" style="margin-bottom:8px">The Videos tab lets members watch clips one '
-        + 'by one, like them and share them. Members can always post by pasting a video link. '
-        + 'Straight from-phone upload needs a free Imgur client id below; leave it empty to keep '
-        + 'link-only posting.</p>'
+        + 'by one, like them and share them. Members can upload any video file straight from '
+        + 'their phone with no setup at all, or paste a video link. Only fill in the Imgur id '
+        + 'below if you would rather your own account hosted the files.</p>'
         + '<div class="field"><label class="lbl">VIDEOS TAB</label>'
         + '<select id="stVidOn">'
         + '<option value="1"' + (Number(s.video_enabled) === 0 ? '' : ' selected') + '>On for everyone</option>'
         + '<option value="0"' + (Number(s.video_enabled) === 0 ? ' selected' : '') + '>Switched off</option>'
         + '</select></div>'
         + '<div class="field"><label class="lbl">IMGUR CLIENT ID FOR PHONE UPLOADS (OPTIONAL)</label>'
-        + '<input id="stVidCloud" placeholder="leave empty to allow links only" value="'
+        + '<input id="stVidCloud" placeholder="leave empty to use the built-in free host" value="'
         + esc(s.video_cloud || '') + '"></div>'
         + '</div>'
         + '<button class="btn" style="margin-top:10px" onclick="saveSettings()">Save settings</button>';
