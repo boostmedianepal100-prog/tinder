@@ -25,6 +25,11 @@ header{position:sticky;top:0;z-index:40;background:rgba(21,10,20,.86);backdrop-f
   background:linear-gradient(90deg,#fb7185,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
 .coinpill{display:flex;align-items:center;gap:6px;background:rgba(120,20,50,.55);
   border:1px solid rgba(244,63,94,.45);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;color:#fcd34d}
+.brandwrap{display:flex;flex-direction:column;gap:1px;min-width:0}
+.memline{display:flex;align-items:center;gap:4px;font-size:10px;color:#c9a7bd;font-weight:600}
+.memline b{color:#fda4af;font-weight:800}
+.memline .dot{width:5px;height:5px;border-radius:50%;background:#34d399;
+  box-shadow:0 0 6px rgba(52,211,153,.9);display:inline-block}
 .hbtn{background:none;border:0;color:#fb7185;font-size:16px;padding:6px}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:460px;margin:0 auto;
   background:rgba(26,12,26,.95);backdrop-filter:blur(14px);border-top:1px solid rgba(244,63,94,.22);
@@ -182,7 +187,10 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:#fbbf24;margin-bott
 <body>
 
 <header>
-  <div class="brand">HeartSync</div>
+  <div class="brandwrap">
+    <div class="brand">HeartSync</div>
+    <div class="memline"><span class="dot"></span><b id="memVal">0</b> <span id="memWord">members</span></div>
+  </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="coinpill" onclick="openRefer()" style="cursor:pointer"><span id="coinVal">0</span> coins<span id="coinMoney"></span></div>
     <button class="hbtn" id="btnRefresh" title="Refresh">&#8635;</button>
@@ -259,6 +267,16 @@ function setCoins(n){
   ME = ME || {};
   ME.coins = Number(n || 0);
   if (el('coinVal')) el('coinVal').textContent = money(ME.coins);
+}
+
+/* member count in the top bar. Real signups and the profiles the team
+   created both count, so the number reflects everyone in the app. */
+function setMembers(n){
+  var v = Number(n || 0);
+  var t = el('memVal');
+  if (t) t.textContent = v.toLocaleString('en-US');
+  var w = el('memWord');
+  if (w) w.textContent = (v === 1) ? T('member', 'member') : T('members', 'members');
 }
 function spin(){ el('stage').innerHTML = '<div class="spin"></div>'; }
 function header(title, sub, right){
@@ -363,6 +381,7 @@ async function boot(){
     if (!r.ok) throw new Error(r.error || 'Could not load.');
     ME = r;
     setCoins(r.coins);
+    setMembers(r.members);
     el('nav').classList.remove('hide');
     if (r.is_admin) el('navAdmin').classList.remove('hide');
     else el('navAdmin').classList.add('hide');
@@ -1504,7 +1523,7 @@ async function renderMe(){
   el('stage').innerHTML = header('My Profile', 'This is what others see') + '<div id="meBox"><div class="spin"></div></div>';
   try {
     var r = await post({ action:'boot' });
-    ME = r; setCoins(r.coins);
+    ME = r; setCoins(r.coins); setMembers(r.members);
     var p = r.profile || {};
     var ph = p.photos || [];
     var thumbs = [1,2,3,4,5].map(function(s){
