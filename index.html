@@ -283,6 +283,10 @@ var ME = null;
 var TAB = QS.get('tab') || 'discover';
 var FEED = [];
 var FEED_TOTAL = 0;
+/* where the member is in the deck, and what they skipped or liked, so the
+   Previous button can bring a card back after a mistaken skip */
+var FEED_POS = 0;
+var FEED_HIST = [];
 var WATCH = [];
 var WATCH_DEFAULT = 500;
 var FEED_FILTER = { category: 'All', gender: 'All' };
@@ -656,6 +660,9 @@ async function renderDiscover(){
     if (!r.ok){ el('feedBox').innerHTML = '<div class="warn">' + esc(r.error) + '</div>'; return; }
     FEED = r.profiles || [];
     FEED_TOTAL = Number(r.total || 0);
+    /* a fresh load starts at the first card; history belongs to the old deck */
+    FEED_POS = 0;
+    FEED_HIST = [];
     setCoins(r.coins);
     var c = el('feedCount');
     if (c){
@@ -705,7 +712,10 @@ function drawFeed(){
       + '<div style="margin-top:14px"><button class="btn ghost" onclick="feedFilters()">Change filter</button></div></div>';
     return;
   }
-  var p = FEED[0];
+  /* the whole deck is held here; these buttons walk it both ways */
+  if (FEED_POS < 0) FEED_POS = 0;
+  if (FEED_POS > FEED.length - 1) FEED_POS = FEED.length - 1;
+  var p = FEED[FEED_POS];
   var img = '';
   if (p.photos > 0){
     /* this person HAS a photo, so never draw a letter: if the small preview
@@ -738,9 +748,70 @@ function drawFeed(){
     + esc(ME.settings ? ME.settings.msg_price : 5) + '</button>'
     + '<button class="btn ghost" onclick="openProfile(\'' + esc(p.uid) + '\')">Comment</button>'
     + '</div>'
-    + (FEED.length > 1 ? '<p class="sub center" style="margin-top:10px">' + FEED.length
-        + ' waiting - skip or like this one to move on</p>' : '');
+    + navRow();
   upgradeCover(p);
+}
+
+/* Previous / Next. Previous also takes back a skip, so a card clicked by
+   mistake can be seen again. */
+function navRow(){
+  var canBack = FEED_POS > 0 || FEED_HIST.length > 0;
+  var canNext = FEED_POS < FEED.length - 1;
+  var bs = 'btn ghost" style="flex:1' + (canBack ? '' : ';opacity:.4');
+  var ns = 'btn ghost" style="flex:1' + (canNext ? '' : ';opacity:.4');
+  return '<div class="row" style="margin-top:10px">'
+    + '<button class="' + bs + '"'
+    + (canBack ? '' : ' disabled') + ' onclick="goCard(-1)">&#8592; Previous</button>'
+    + '<button class="' + ns + '"'
+    + (canNext ? '' : ' disabled') + ' onclick="goCard(1)">Next &#8594;</button>'
+    + '</div>'
+    + '<p class="sub center" style="margin-top:8px">'
+    + 'Profile ' + (FEED_POS + 1) + ' of ' + FEED.length
+    + (FEED_TOTAL > FEED.length ? ' &middot; ' + FEED_TOTAL + ' match your filter' : '')
+    + '</p>';
+}
+
+/* walk the deck. Going back far enough also un-skips: the server is told, so
+   the card does not vanish again on the next load. */
+async function goCard(d){
+  if (d < 0){
+    if (FEED_POS > 0){
+      FEED_POS = FEED_POS - 1;
+      drawFeed();
+      return;
+    }
+    if (!FEED_HIST.length) return;
+    var back = FEED_HIST.pop();
+    try { await post({ action:'unpass', uid:back.uid }); } catch(e){}
+    back.liked = 0;
+    FEED.unshift(back);
+    FEED_POS = 0;
+    drawFeed();
+    return;
+  }
+  if (FEED_POS < FEED.length - 1){
+    FEED_POS = FEED_POS + 1;
+    drawFeed();
+  }
+}
+
+/* a card is done: remember it so Previous can bring it back, then move on */
+function dropCard(uid){
+  var p = null;
+  var at = -1;
+  for (var i = 0; i < FEED.length; i++){
+    if (FEED[i].uid === uid){ p = FEED[i]; at = i; }
+  }
+  if (p) FEED_HIST.push({ uid:p.uid, name:p.name, age:p.age, gender:p.gender,
+    category:p.category, city:p.city, country:p.country, bio:p.bio,
+    photos:p.photos, thumb:p.thumb, slot:p.slot, fake:p.fake, last:p.last,
+    online:p.online, following:p.following });
+  FEED = FEED.filter(function(x){ return x.uid !== uid; });
+  if (at >= 0 && at < FEED_POS) FEED_POS = FEED_POS - 1;
+  if (FEED_POS > FEED.length - 1) FEED_POS = FEED.length - 1;
+  if (FEED_POS < 0) FEED_POS = 0;
+  FEED_TOTAL = FEED_TOTAL > FEED.length ? FEED_TOTAL : FEED.length;
+  drawFeed();
 }
 
 /* the light preview shows at once, the sharp version replaces it a moment later.
@@ -807,15 +878,14 @@ async function doLike(uid){
     var r = await post({ action:'like', uid:uid });
     if (!r.ok){ toast(esc(r.error)); return; }
     toast(r.mutual ? 'It is a match - they liked you too!' : 'Liked!');
-    FEED = FEED.filter(function(x){ return x.uid !== uid; });
-    drawFeed();
+    dropCard(uid);
   } catch(e){ toast('Failed: ' + esc(e.message)); }
 }
 async function doPass(uid){
   try {
     await post({ action:'pass', uid:uid });
-    FEED = FEED.filter(function(x){ return x.uid !== uid; });
-    drawFeed();
+    dropCard(uid);
+    toast('Skipped. Tap Previous to bring it back.', 3000);
   } catch(e){ toast('Failed: ' + esc(e.message)); }
 }
 async function doFollow(uid){
@@ -896,8 +966,7 @@ async function likeFromModal(uid){
     if (!r.ok){ toast(esc(r.error)); return; }
     toast(r.mutual ? 'It is a match - they liked you too!' : 'Liked!');
     closeModal();
-    FEED = FEED.filter(function(x){ return x.uid !== uid; });
-    drawFeed();
+    dropCard(uid);
   } catch(e){ toast(esc(e.message)); }
 }
 async function followFromModal(uid){
@@ -912,8 +981,8 @@ async function passFromModal(uid){
   try {
     await post({ action:'pass', uid:uid });
     closeModal();
-    FEED = FEED.filter(function(x){ return x.uid !== uid; });
-    drawFeed();
+    dropCard(uid);
+    toast('Skipped. Tap Previous to bring it back.', 3000);
   } catch(e){ toast(esc(e.message)); }
 }
 async function postComment(uid){
